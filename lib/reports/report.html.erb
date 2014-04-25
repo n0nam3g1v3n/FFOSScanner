@@ -1,0 +1,256 @@
+
+<%
+
+# Generate a unique name for the localStorage object for this report.
+# This has to be done, because otherwise each report will share the
+# same storage, which is bad.
+
+$watchtower_storage = 'watchtower' + Time.now.to_i.to_s
+
+%><!DOCTYPE html>
+<html>
+<head>
+	<title>Watchtower<%= @sanitizedProject_name %> Firefox OS Web App Vulnerability Scanner</title>
+	<style>
+
+	<%
+	unless $configs[:stylesheets].empty?
+		$configs[:stylesheets].each do |stylesheet|
+	%>
+	<%= ERB.new(File.read(stylesheet)).result(binding) %>
+	<%
+		end
+	end
+	%>
+	</style>
+	<% if $configs[:embed_javascript].eql? true %>
+		<script>
+			<%= ERB.new(File.read('./lib/static/js/vendor/jquery-1.7.2.min.js')).result(binding) %>
+			<%= ERB.new(File.read('./lib/static/js/vendor/jquery-ui-1.8.19.custom.min.js')).result(binding) %>
+		</script>
+	<% else %>
+		<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'></script>
+		<script src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js'></script>
+	<% end %>
+	<script type='text/javascript'>
+	<%= ERB.new(File.read('./lib/static/js/wt.js.erb')).result(binding) %>
+	<%= ERB.new(File.read('./lib/static/js/wt.data_store.js.erb')).result(binding) %>
+	<%= ERB.new(File.read('./lib/static/js/wt.poi.js.erb')).result(binding) %>
+	<%= ERB.new(File.read('./lib/static/js/wt.signature.js.erb')).result(binding) %>
+	<%= ERB.new(File.read('./lib/static/js/main.js.erb')).result(binding) %>
+	</script>
+</head>
+<body>
+ 
+	<div id='control_bar'>
+		<div id='inner'>
+			<div id='highlighting'>
+				Highlighting:
+				<a href='javascript:wt.set_highlight("on")'>On</a> |
+				<a href='javascript:wt.set_highlight("off")'>Off</a>
+			</div>
+			
+			<div id='show'>
+				Show:
+				<a href='javascript:wt.poi.show("all")'>All</a> | 
+				<a href='javascript:wt.poi.show("ok")'>OK</a> | 
+				<a href='javascript:wt.poi.show("dubious")'>Dubious</a> |
+				<a href='javascript:wt.poi.show("bad")'>Bad</a>
+			</div>
+		</div>
+	</div>
+	
+	<div id='container'>
+
+		<div id='masthead'>
+
+			<div id='masthead_left'>
+
+				<img src="../doc/images/firefox-os_logo-wordmark_RGB.png" alt="Firefox OS">
+
+				<h1> Web App Vulnerability Report</h1>
+			</div>
+			<div id='masthead_root'>
+				<% if $sanitizedProject_name == "WebApp" || $sanitizedProject_name == ""%>
+					<h2><%= @scan %></h2>
+				<% else %>
+					<h2><%= $sanitizedProject_name %></h2>
+				<% end %>
+				<p>Source Code Audit - <em><%= Date.today.strftime("%Y-%m-%d") %></em>
+				<br>Prepared for <em><%= @sanitizedUsername %></em>					
+			</div>
+			<div id='masthead_right'>
+				<% unless $configs[:header_text].empty? %>
+				<%= $configs[:header_text] %>
+				<% end %>
+				<noscript>
+				<p class='warning'>WARNING: You have JavaScript disabled. You
+				will not have access to this report's advanced functionality.</p>
+				</noscript>
+            
+                <p class='warning' id='no_storage'>Your browser does not support HTML 5
+                Local Storage. Your work will not be saved.</p>	
+			</div>
+		</div>
+		<div id='main'>
+			<!-- tab navigation -->
+            <nav>
+                <ul>
+                    <% vulnscanner.points_of_interest_sorted.each do |sym_file_type, dontcare| %>
+                    <%= "<li><a href='#filetype_#{sym_file_type.to_s}'>#{sym_file_type.to_s}</a></li>" %>
+                    <% end %>
+                </ul>
+            </nav>
+
+			<% vulnscanner.points_of_interest_sorted.each do |sym_file_type, signature_groups|%>
+			<!-- filetype -->
+			<div id='filetype_<%= sym_file_type.to_s %>'>
+
+				<nav class='column_nav'>
+                    <span class='pin'><a href='javascript:wt.toggle_pin()'>pin</a></span>
+
+					<% signature_groups.each do |signature_group, signatures| %>
+					<h3><a onclick='javascript:wt.signature.toggle_group(this, "<%= signature_group.to_s %>")'><%= signature_group.to_s.gsub('_', ' ') %> [<span class='expand_collapse'>-</span>]</a></h3>
+
+					<ul class='signature_group_<%= signature_group.to_s %>'>
+						<%
+						signatures.each do |signature, points|
+							# we only need to calculate this hash once
+							@signature_hash = Digest::MD5.hexdigest(signature.to_s)
+						%>
+						<li class='<%= @signature_hash %>'>
+							<code><a href='#s-<%= @signature_hash %>'><%= h signature.to_s %></a></code>
+							<span class='signature_count'>(<%= points.count %>)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("<%= sym_file_type.to_s %>","<%= @signature_hash %>")'>Hide</a>
+						</li>
+						<% end %>
+					</ul>
+					<% end %>
+				</nav>
+				
+				<div class='column_content'>
+          <% cssCounter = false %>
+					<% esCounter = false %>
+					<% hesCounter = false %>
+					<% iCounter = false %>
+					<% urlCounter = false %>
+					<% ifCounter = false %>
+					<% pfCounter = false %>
+					<% dCounter = false %>
+					<% cCounter = false %>
+
+					<% signature_groups.each do |signature_group, signatures|
+						signatures.each do |signature, points|
+							# we only need to calculate this hash once
+							@signature_hash = Digest::MD5.hexdigest(signature.to_s)
+					%>
+
+					<div class='signature_<%= @signature_hash %> signature_group_<%= signature_group.to_s %> signature_group'>
+						<a name='s-<%= @signature_hash %>'></a><br>
+
+					<div class='group_signature_info'>          
+					<% if signature_group.to_s == 'client_side_storage' && cssCounter == false %>
+            <h2>Client Side Storage</h2><p>Client-side storage in HTML5 is used to store data on local hard drive rather than on a server in order to improve performance and availability to work offline.  
+It is important to protect these sensitive data that are stored in the client-side storage when building a privileged web application.</p>  
+
+            
+						<% cssCounter = true %>
+          <% elsif signature_group.to_s == 'execution_sinks' && esCounter == false %>
+            <h2>Javascript Execution Sinks</h2><p>Execution sinks are Javascript functions that parse strings as Javascript.  it is dangerous to put untrusted data directly into a command execution context.  Incorrect parsing of any untrusted data can lead to DOM based XSS vulnerabilities.</p>
+            <% esCounter = true %>
+          <% elsif signature_group.to_s == 'HTMLElement_sinks'&& hesCounter == false %>
+            <h2>HTMLElement Sinks</h2><p>HTMLElement sinks allow HTML manipulation in DOM environment. If the tainted variable gets passed to a sink without first being sanitized, it can lead to DOM based XSS attacks.</p>
+            <% hesCounter = true %>
+          <% elsif signature_group.to_s == 'inputs' && iCounter == false %>
+            <h2>HTML Input Elements</h2><p>HTML input elements are used to create interactive controls for web applications. They allow user to enter data and store the input values. Input that are being used as part or all of a URL loaded by the app can be subjected to DOM based XSS.  Since attacker can inject malicious Javascript code into the HTML inputs, it is necessary to validate the data before escaping to prevent malicious code from executing.</p>
+            <% iCounter = true %>
+          <% elsif signature_group.to_s == 'url_sinks' && urlCounter == false %>
+            <h2>Url Sinks</h2><p>Url Sinks are used to set a DOM property to an HTML element.  <i>&quot;This risk that if an attacker can control the URL, they can force connection to remote host, or potentially execute script (e.g. javascript: URI)&quot;</i>(Theriault, 2013)</p>
+						<% urlCounter = true %>
+					<% elsif signature_group.to_s == 'interesting_functions' && ifCounter == false %>
+            <h2>Interesting Functions</h2><p>These functions can be vulnerable to DOM based XSS attack if they are not coded properly</p>
+            <% ifCounter = true %>
+					<% elsif signature_group.to_s == 'privileged_functions' && pfCounter ==  false %>
+            <h2>Privileged API Functions</h2><p>
+            Privileged APIs handles platform and user-sensitive data.  If the privileged APIs were called incorrectly, it may allow attackers or malicious process to elevate their privilege, hijack the process, and obtain sensitive information. <i>&quot;It is important to know if privileged APIs fail to properly shed their privileges before returning to the caller or if the privileged function might make certain assumptions about the data, context or state information passed to it by the caller. It is important to always know when and how privileged APIs can be called in order to ensure that their elevated level of privilege cannot be exploited.&quot;</i>(<A href='http://minsky.gsi.dit.upm.es/semanticwiki/index.php/Category:Incorrect_Use_of_Privileged_APIs'>VulneraPedia</a>, 2011)<br><br>
+            When reviewing App Manifest:
+						<ul><li>Ensure type is web or privileged.</li>
+    				<li>Review permissions requested for appropriateness. Consider allow restrictions.</li>
+    				<li>Review system messages listened for.</li>
+    				<li>Review activities handled.</li></ul></p>
+    				
+    				Please read the <a href='https://developer.mozilla.org/en-US/docs/Web/Apps/CSP?redirectlocale=en-US&redirectslug=Apps%2FCSP'>Content Security Policy </a>on privileged apps<br>
+
+            <% pfCounter = true %>
+					<% elsif signature_group.to_s == 'dangerous' && dCounter == false %>
+            <h2>Dangerous HTML Tags</h2><br>
+            <% dCounter = true %>
+					<% elsif signature_group.to_s == 'comments' && cCounter == false %>
+            <h2>HTML Comments Tags</h2><br>
+            <% cCounter = true %>
+          <% end %>			
+					</div>
+						<br><h3>
+							<code><b><%= signature_group.to_s %>: <%= h signature.to_s %></b></code>
+							<span class='signature_count'>(<%= points.count %>)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("<%= sym_file_type.to_s %>","<%= @signature_hash %>")'>Hide</a>
+							</span>
+						</h3>
+
+					<% #Display signature description %>
+		
+				<% currentSignature = SignatureDescription.new(signature.to_s, signature_group.to_s) %>
+
+					<h3>Description:</h3><p><%= currentSignature.display_description %></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: <%= points.count %></h3></div>
+						<div class='sortable'>
+                            <%
+                                current_poi = 0
+                                points.each do |point|
+                                    current_poi += 1
+                            %>
+							<div class='point_of_interest'>
+								<span class='file_name'><%= h point.file %></span>:<span class='line_number'><%= h point.line_number %></span>
+                                <span class='match_count'>(<%= current_poi %>/<%= points.count %>)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									<%
+									# apply highlighting to the signature matches								
+									snippet_safe = h point.snippet
+									match_safe   = h point.match
+									snippet_highlighted = snippet_safe.gsub(match_safe, "<span class='match_highlight'>#{match_safe}</span>")
+									%>
+									<pre class='snippet'><code><%= snippet_highlighted %></code></pre>
+								</div>
+
+							</div>
+
+							<% end %>
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><%= currentSignature.display_solutions %></p><br> 
+					<% end 
+					end
+					%>
+					
+				</div> <!-- column_content -->
+			</div> <!-- @close_filetype -->
+			<% end %>
+		</div> <!-- main -->
+		
+		<% unless $configs[:footer_text].empty? %>
+		<footer><%= $configs[:footer_text] %><br></footer>
+		<% end %>
+	</div>
+</body>
+</html>

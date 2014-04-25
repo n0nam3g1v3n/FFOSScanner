@@ -1,0 +1,56 @@
+#!/usr/bin/ruby
+######################################################################
+#Firefox OS Web App Vulnerability Scanner is an application for scanning
+#possible DOM based XSS, privileged APIs, and local storage vulnerabilities 
+#in HTML5 web application for Firefox OS.  This application also provides user 
+#recommendations from OWASP and Mozilla to eliminate such vulnerabilities 
+########################################################################
+
+is_ruby_18 = (RUBY_VERSION[0,3] === '1.8')
+require 'rubygems'
+require 'gtk2'
+require 'require_all'
+require 'vrlib'
+require 'erb'
+require 'csv' unless is_ruby_18
+require 'digest'
+require 'fastercsv' if is_ruby_18
+require 'fileutils'
+require 'iconv'
+require 'open-uri'
+require 'launchy'
+require 'sanitize'
+require_relative './watchTower'	
+require_relative 'lib/models/poi'
+require_relative 'lib/models/signature'
+require_relative 'lib/models/vulnscanner'
+require_relative 'lib/models/signatureDescription'
+require_relative 'lib/models/clientSideStorageDescription'
+require_relative 'lib/models/privilegedApiDescription'
+require_relative 'lib/models/interestingFunctionDescription'
+require_relative 'lib/models/urlSinkDescription'
+require_relative 'lib/models/htmlElementSinkDescription'
+require_relative 'lib/models/executionSinkDescription'
+require_relative 'lib/models/htmlDescription'
+
+
+#make program output in real time so errors visible in VR.
+STDOUT.sync = true
+STDERR.sync = true
+
+#everything in these directories will be included
+my_path = File.expand_path(File.dirname(__FILE__))
+
+require_all Dir.glob(my_path + "/bin/**/*.rb") 
+
+
+
+@project_name = "WebApp" #set default project name
+@username = "John Doe" #set default username
+
+# load user interface
+x = VulnScanGUI.new(@username, @scan, @project_name, @output_format, @output_format1, @output_format2, @output_format3, @output_format4, './config.rb', 1, 1, 10)
+
+x.show
+
+

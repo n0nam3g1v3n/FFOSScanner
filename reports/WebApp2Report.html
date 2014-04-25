@@ -1,0 +1,4273 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Watchtower Firefox OS Web App Vulnerability Scanner</title>
+	<style>
+
+	
+	/* Layout helpers
+----------------------------------*/
+.ui-helper-hidden { display: none; }
+.ui-helper-hidden-accessible { position: absolute !important; clip: rect(1px 1px 1px 1px); clip: rect(1px,1px,1px,1px); }
+.ui-helper-reset { margin: 0; padding: 0; border: 0; outline: 0; line-height: 1.3; text-decoration: none; font-size: 100%; list-style: none; }
+.ui-helper-clearfix:before, .ui-helper-clearfix:after { content: ""; display: table; }
+.ui-helper-clearfix:after { clear: both; }
+.ui-helper-clearfix { zoom: 1; }
+.ui-helper-zfix { width: 100%; height: 100%; top: 0; left: 0; position: absolute; opacity: 0; filter:Alpha(Opacity=0); }
+
+/* Component containers
+----------------------------------*/
+.ui-widget { font-family: sans-serif; font-size: 1.1em; }
+.ui-widget .ui-widget { font-size: 1em; }
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button { font-family: sans-serif; font-size: 1em; }
+.ui-widget-content { border: 1px solid #dddddd; background: #70A2D3 50% top repeat-x;}
+.ui-widget-header { background: 50% 50% repeat-x; color: #ffffff; font-weight: bold; }
+
+/* Interaction states
+----------------------------------*/
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default { border: 1px solid #cccccc; background: 50% 50% repeat-x;}
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited { color: white; text-decoration: none; }
+.ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover, .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus { border: 1px solid #EEE; background: 50% 50% repeat-x; font-weight: bold; color: #c77405; }
+.ui-state-hover a, .ui-state-hover a:hover { color: white; text-decoration: none; }
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active { border: 1px solid #4183C4; background: white 50% 50% repeat-x; font-weight: bold;}
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited { color: #4183C4; text-decoration: none; }
+.ui-widget :active { outline: none; }
+
+/* Misc visuals
+----------------------------------*/
+/* Corner radius */
+.ui-corner-all, .ui-corner-top, .ui-corner-left, .ui-corner-tl { -moz-border-radius-topleft: 4px; -webkit-border-top-left-radius: 4px; -khtml-border-top-left-radius: 4px; border-top-left-radius: 4px; }
+.ui-corner-all, .ui-corner-top, .ui-corner-right, .ui-corner-tr { -moz-border-radius-topright: 4px; -webkit-border-top-right-radius: 4px; -khtml-border-top-right-radius: 4px; border-top-right-radius: 4px; }
+
+/*!
+ * jQuery UI Tabs 1.8.19
+ *
+ * Copyright 2012, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Tabs#theming
+ */
+.ui-tabs { position: relative; zoom: 1; } /* position: relative prevents IE scroll bug (element with position: relative inside container with overflow: auto appear as "fixed") */
+.ui-tabs .ui-tabs-nav { margin: 0; padding: .2em .2em 0; }
+.ui-tabs .ui-tabs-nav li { list-style: none; float: left; position: relative; top: 1px; margin: 0 .2em 1px 0; border-bottom: 0 !important; padding: 0; white-space: nowrap; }
+.ui-tabs .ui-tabs-nav li a { float: left; padding: .25em 1em; text-decoration: none; }
+.ui-tabs .ui-tabs-nav li.ui-tabs-selected { margin-bottom: 0; padding-bottom: 1px; }
+.ui-tabs .ui-tabs-nav li.ui-tabs-selected a, .ui-tabs .ui-tabs-nav li.ui-state-disabled a, .ui-tabs .ui-tabs-nav li.ui-state-processing a { cursor: text; }
+.ui-tabs .ui-tabs-nav li a, .ui-tabs.ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-selected a { cursor: pointer; } /* first selector in group seems obsolete, but required to overcome bug in Opera applying cursor: text overall if defined elsewhere... */
+.ui-tabs .ui-tabs-panel { display: block; border-width: 0; background: none; }
+.ui-tabs .ui-tabs-hide { display: none !important; }
+
+	
+	a:link,
+a:visited{
+	color: #4183C4;
+	text-decoration: none;
+}
+
+a:hover{
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+body{
+	font-family: sans-serif;
+	font-size: small;
+	margin: 0;
+	padding: 0;
+}
+
+#container{
+	background-color: white;
+	border: 1px solid silver;
+	border-radius: 10px;
+	color: #333;
+	margin: 40px auto 10px auto;
+	width: 1000px;
+}
+
+#control_bar{
+	background-color: #4183C4;
+	color: white;
+	line-height: 30px;
+	margin: 0;
+	opacity: .75;
+	padding: 0;
+	position: fixed;
+	top: 0;
+	width: 100%;
+	z-index: 100;
+}
+
+.column_nav{
+	border-right: 1px solid #EEE;
+	float: left;
+	width: 180px;
+	margin: 10px 5px 10px 10px;
+	padding: 10px;
+}
+
+.column_nav span.pin{
+    float: right;
+    font-size: x-small;
+}
+
+.column_nav ul{
+	list-style-type: none;
+	margin: 0 0 20px 0;
+	padding: 0;
+}
+
+.column_nav ul li{
+	overflow: auto;
+}
+
+.column_nav ul li a.signature_hidden{
+	color: silver;
+}
+
+.column_nav ul li a.show_hide{
+	color: #4183C4;
+	display: none;
+	float: right;
+	font-size: x-small;
+	margin-right: 10px;
+	margin-top: 2px;
+}
+
+.column_nav ul li:hover{
+	background-color: #F8F8F8;
+}
+
+.column_nav ul li:hover a.show_hide{
+	display: list-item;
+}
+
+.column_nav h3{
+	font-size: small;
+	font-weight: normal;
+	margin: 0;
+	text-transform: capitalize;
+}
+
+.column_content{
+	float: right;
+	width: 740px;
+	margin: 10px 10px 10px 5px;
+	padding: 10px;
+}
+
+.column_content h2{
+	margin: 0 0 10px 0;
+	text-transform: uppercase;
+}
+
+.column_content h3 span{
+	color: silver;
+}
+
+.column_content h3 span.top_hide{
+	float: right;
+	font-size: x-small;
+	font-weight: bold;
+}
+
+.column_content h3 span.top_hide a{
+	color: #4183C4;
+}
+
+div.point_of_interest{
+	background-color: white;
+	border: 2px solid #EEE;
+	border-radius: 10px;
+	box-shadow: 2px 2px 2px #BFBFBF;
+	margin: 10px;
+	padding: 10px;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+}
+
+div.point_of_interest.poi_bad{
+	border: 2px solid #A52A2A;
+	background-color: #FFC0CB;
+}
+
+div.point_of_interest.poi_dubious{
+	background-color: lightyellow;
+	border: 2px solid gold;
+}
+
+div.point_of_interest.poi_ok{
+	background-color: #90EE90;
+	border: 2px solid green;
+}
+
+div.point_of_interest div.poi_content p,
+div.point_of_interest div.poi_content pre{
+	margin: 0;
+	padding: 0;
+}
+
+div.point_of_interest div.poi_content{
+	background-color: #EEE;
+	overflow: auto;
+	padding: 5px;
+}
+
+div.point_of_interest span.poi_mark_content{
+	color: silver;
+	float: right;
+	font-size: x-small;
+}
+
+div.point_of_interest span.poi_mark_content a{
+	color: #4183C4;
+	padding: 0 2px;
+	border-radius: 2px;
+}
+
+div.point_of_interest span.poi_mark_content a.poi_ok{
+	color: green;
+}
+
+div.point_of_interest span.poi_mark_content a.poi_dubious{
+	color: orange;
+}
+
+div.point_of_interest span.poi_mark_content a.poi_bad{
+	color: #A52A2A;
+}
+
+div.point_of_interest.poi_ok span.poi_mark_content a.poi_ok{
+	background-color: green;
+	color: white;
+}
+
+div.point_of_interest.poi_dubious span.poi_mark_content a.poi_dubious{
+	background-color: orange;
+	color: white;
+}
+
+div.point_of_interest.poi_bad span.poi_mark_content a.poi_bad{
+	background-color: #A52A2A;
+	color: white;
+}
+
+div.point_of_interest.poi_ok span.poi_mark_content a.poi_ok:hover,
+div.point_of_interest.poi_dubious span.poi_mark_content a.poi_dubious:hover,
+div.point_of_interest.poi_bad span.poi_mark_content a.poi_bad:hover{
+    text-decoration: none;
+}
+
+div.point_of_interest span.file_name{
+	font-size: small;
+}
+
+div.point_of_interest span.match_count{
+    color: gray;
+    font-size: x-small;
+}
+
+div.point_of_interest span.line_number{
+	color: green;
+	font-size: small;
+}
+
+footer{
+	clear: both;
+    padding: 10px;
+	text-align: center;
+}
+
+html{
+	background-color: #EEE;
+}
+
+#highlighting{
+	float: left;
+	padding: 0 10px;
+}
+
+#highlighting a{
+	color: white;
+}
+
+#inner{
+	margin: 0 auto;
+	width: 1000px;
+}
+
+#inner p{
+	margin: 0;
+	padding: 0;
+}
+
+#main{
+	clear: both;
+}
+
+
+#masthead_left{
+	float: left;
+	width: 1000px;
+	padding:0px;
+}
+
+#masthead_left h1{
+	font-weight: normal;
+	font-size:28pt;
+	margin: 0;
+	padding-top: 30px;
+	padding-left: 290px;
+}
+
+#masthead_root {
+	float: left;
+	padding-top: 10px;
+	padding-left: 30px;
+}
+#masthead_root h2{
+	color: black;
+}
+
+#masthead_right{
+	float: right;
+	padding-top: 30px;
+	padding-right: 10px;
+}
+
+#masthead_right h4,
+#masthead_right p{
+	margin: 0;
+	padding: 0;
+}
+
+p.warning{
+	background-color: red;
+	color: white;
+    clear: both;
+	font-weight: bold;
+	line-height: 2em;
+	text-align: center;
+}
+
+p.warning#no_storage{
+    display: none;
+}
+
+#show{
+	float: right;
+	padding: 0 10px;
+}
+
+#show a{
+	color: white;
+}
+
+span.match_highlight{
+	background-color: yellow;
+	color: black;
+}
+
+span.signature_count{
+	color: gray;
+	font-size: x-small;
+}
+
+h2{
+color: #000066;
+}
+
+
+img {
+	float: left;
+	height: 75px;
+	width: auto;
+	padding-top: 10px;
+}
+#vulnerability_number{
+	color: red;
+}
+
+	
+	</style>
+	
+		<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'></script>
+		<script src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js'></script>
+	
+	<script type='text/javascript'>
+	/* The main wt object */
+var wt = {
+
+    // sets the highlighting on or off
+    set_highlight: function(mode){
+        var bg_color = (mode === 'on') ? 'yellow' : 'transparent' ;
+        $('span.match_highlight').css('background-color', bg_color);
+    },
+
+    // toggles the pin status of the sidebar
+    toggle_pin: function(){
+        // get a handle on the necessary objects
+        var pin_link = $('nav.column_nav span.pin a');
+
+        // toggle the pin state
+        if(pin_link.html() == 'pin'){
+            $('nav.column_nav').css('position', 'fixed');
+            pin_link.html('unpin');
+        } else {
+            $('nav.column_nav').css('position', 'relative');
+            pin_link.html('pin');
+        }
+    },
+
+};
+
+	/* the wt datastore (manages LocalStorage) */
+wt.data_store = {
+
+    load: function(){
+        // verify that a localstorage object exists
+        if(localStorage['watchtower1373215581'] !== undefined){
+            
+            // unpack the saved classes back into an array
+            var poi_classes = jQuery.parseJSON(localStorage['watchtower1373215581']);
+            
+            // do this.save(), but in reverse
+            $('div.point_of_interest').each(function(index, element){
+                if(poi_classes[index] !== undefined){
+                    $(element).attr('class', poi_classes[index]);
+                }
+            });
+            
+            // hide the appropriate PoIs
+            $('div.poi_hidden div.poi_content').hide();
+            $('div.poi_hidden span.poi_mark_content a.poi_hide').text('Show');
+        }
+    },
+
+    save: function(){
+        var poi_classes = [];
+        
+        // Iterate over the PoIs. Save the class of each that has been marked.
+        $('div.point_of_interest').each(function(index, element){                    
+            var the_classes = $(element).attr('class');
+            // don't bother saving information for the unmarked
+            if(the_classes != 'point_of_interest'){
+                poi_classes[index] = the_classes;
+            }
+        });
+        localStorage['watchtower1373215581'] = window.JSON.stringify(poi_classes);
+    },
+
+};
+
+	/* Points of Interest */
+wt.poi = {
+
+    // hides each poi's content
+    hide_content: function(o){
+        var obj       = $(o);
+        var next_text = (obj.text() == 'Hide') ? 'Show' : 'Hide';
+        var poi       = obj.parents('div.point_of_interest');
+        obj.text(next_text);
+        poi.toggleClass('poi_hidden');
+        poi.children('div.poi_content').fadeToggle();
+        wt.data_store.save();
+    },
+
+    // marks the poi as "ok" or "bad"
+    mark: function(obj, mark){
+        var poi = $(obj).parents('div.point_of_interest');
+        // toggle the classes of both the pois and the links
+        if(mark == 'ok'){
+            poi.toggleClass('poi_ok');
+            poi.removeClass('poi_dubious');
+            poi.removeClass('poi_bad');
+        } else if(mark == 'dubious'){
+            poi.removeClass('poi_ok');
+            poi.toggleClass('poi_dubious');
+            poi.removeClass('poi_bad');
+        } else if(mark == 'bad'){
+            poi.removeClass('poi_ok');
+            poi.removeClass('poi_dubious');
+            poi.toggleClass('poi_bad');
+        }
+        wt.data_store.save();
+    },
+
+    // shows only the pois specified
+    show: function(mode){
+        // @note: this is just too slow to render with show(), so don't try.
+        // The animations perform terribly.
+        if(mode == 'all'){
+            $('div.point_of_interest').css('display', 'block');
+        } else if(mode == 'ok'){
+            $('div.point_of_interest').css('display', 'none');
+            $('div.point_of_interest.poi_ok').css('display', 'block');
+        } else if(mode == 'dubious'){
+            $('div.point_of_interest').css('display', 'none');
+            $('div.point_of_interest.poi_dubious').css('display', 'block');
+        } else if(mode == 'bad'){
+            $('div.point_of_interest').css('display', 'none');
+            $('div.point_of_interest.poi_bad').css('display', 'block');
+        }
+        
+        // hide the signature groups which have no signatures to display
+        $('div.signature_group').show();
+        if(mode === 'ok' || mode === 'dubious' || mode === 'bad'){
+            $('div.signature_group').each(function(index, element){
+                if(element.find('div.poi_' + mode).length === 0){
+                    element.hide();
+                }
+                /*
+                if($(this).find('div.poi_' + mode).length === 0){
+                    $(this).hide();
+                }
+                */
+            });
+        }
+        wt.data_store.save();
+    },
+
+};
+
+	/* Signatures */
+wt.signature = {
+    
+    // shows/hides an individual signature
+    toggle: function(filetype, signature){
+        var obj      = $('div#filetype_' + filetype + ' .column_nav ul li.' + signature + ' a').last();
+        var new_text = (obj.text() == 'Show') ? 'Hide' : 'Show' ;
+        obj.text(new_text);
+        
+        //modify the nav item
+        $('div#filetype_' + filetype + ' div.column_nav ul li.' + signature + ' a').toggleClass('signature_hidden');
+        //hide the signature
+        $('div#filetype_' + filetype + ' div.signature_' + signature).fadeToggle();
+        wt.data_store.save();
+    },
+
+    // shows/hides payload groups
+    toggle_group: function(obj, group){
+        var sym     = $(obj).children('span.expand_collapse').text();
+        var new_sym = (sym == '-') ? '+' : '-' ;
+        $(obj).children('span.expand_collapse').text(new_sym);
+        $('ul.signature_group_' + group).fadeToggle();
+        $('div.signature_group_' + group).fadeToggle();
+        wt.data_store.save();
+    },
+
+};
+
+	// on-load initializations
+jQuery(document).ready(function(){
+    
+    // initialize the tabbed display
+	$('#main').tabs();
+	
+	// animate opacity on the control bar
+	$('#control_bar').hover(
+		function(){	$(this).fadeTo('fast', 1); },
+		function(){ $(this).fadeTo('fast', 0.75); }
+	);
+
+    // bind events - Points of Interest
+    $('a.poi_ok').click(function(e){ wt.poi.mark(e.target, "ok"); });
+    $('a.poi_dubious').click(function(e){ wt.poi.mark(e.target, "dubious"); });
+    $('a.poi_bad').click(function(e){ wt.poi.mark(e.target, "bad"); });
+    $('a.poi_hide').click(function(e){ wt.poi.hide_content(e.target); });
+    
+    // local storage
+    if(typeof(Storage) !== 'undefined'){
+        console.log('Local storage is available!');
+        console.log('Saving to key: watchtower1373215581');
+        wt.data_store.load();
+    } else {
+        // warn the user that work will not be saved
+        console.log('Local storage is not available.');
+        $('p.warning#no_storage').fadeIn();
+    }
+
+});
+
+
+	</script>
+</head>
+<body>
+ 
+	<div id='control_bar'>
+		<div id='inner'>
+			<div id='highlighting'>
+				Highlighting:
+				<a href='javascript:wt.set_highlight("on")'>On</a> |
+				<a href='javascript:wt.set_highlight("off")'>Off</a>
+			</div>
+			
+			<div id='show'>
+				Show:
+				<a href='javascript:wt.poi.show("all")'>All</a> | 
+				<a href='javascript:wt.poi.show("ok")'>OK</a> | 
+				<a href='javascript:wt.poi.show("dubious")'>Dubious</a> |
+				<a href='javascript:wt.poi.show("bad")'>Bad</a>
+			</div>
+		</div>
+	</div>
+	
+	<div id='container'>
+
+		<div id='masthead'>
+
+			<div id='masthead_left'>
+
+				<img src="../doc/images/firefox-os_logo-wordmark_RGB.png" alt="Firefox OS">
+
+				<h1> Web App Vulnerability Report</h1>
+			</div>
+			<div id='masthead_root'>
+				
+					<h2>WebApp2</h2>
+				
+				<p>Source Code Audit - <em>2013-07-07</em>
+				<br>Prepared for <em>John Doe</em>					
+			</div>
+			<div id='masthead_right'>
+				
+				
+	<div id='masthead_right'>
+		<h4>Auditor:</h4>
+		<p>Stanley Wong
+		</p>
+	</div>
+	
+				
+				<noscript>
+				<p class='warning'>WARNING: You have JavaScript disabled. You
+				will not have access to this report's advanced functionality.</p>
+				</noscript>
+            
+                <p class='warning' id='no_storage'>Your browser does not support HTML 5
+                Local Storage. Your work will not be saved.</p>	
+			</div>
+		</div>
+		<div id='main'>
+			<!-- tab navigation -->
+            <nav>
+                <ul>
+                    
+                    <li><a href='#filetype_html'>html</a></li>
+                    
+                    <li><a href='#filetype_js'>js</a></li>
+                    
+                </ul>
+            </nav>
+
+			
+			<!-- filetype -->
+			<div id='filetype_html'>
+
+				<nav class='column_nav'>
+                    <span class='pin'><a href='javascript:wt.toggle_pin()'>pin</a></span>
+
+					
+					<h3><a onclick='javascript:wt.signature.toggle_group(this, "inputs")'>inputs [<span class='expand_collapse'>-</span>]</a></h3>
+
+					<ul class='signature_group_inputs'>
+						
+						<li class='cdc25cdd05ee25c9ea83a53a4aa750dd'>
+							<code><a href='#s-cdc25cdd05ee25c9ea83a53a4aa750dd'>&lt;input</a></code>
+							<span class='signature_count'>(1)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("html","cdc25cdd05ee25c9ea83a53a4aa750dd")'>Hide</a>
+						</li>
+						
+						<li class='ea02e39fa43dc914db8a9250c86fa57d'>
+							<code><a href='#s-ea02e39fa43dc914db8a9250c86fa57d'>&lt;script</a></code>
+							<span class='signature_count'>(7)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("html","ea02e39fa43dc914db8a9250c86fa57d")'>Hide</a>
+						</li>
+						
+					</ul>
+					
+					<h3><a onclick='javascript:wt.signature.toggle_group(this, "dangerous")'>dangerous [<span class='expand_collapse'>-</span>]</a></h3>
+
+					<ul class='signature_group_dangerous'>
+						
+						<li class='6f17c00fe370ee631f2c4cb6ed4e7a09'>
+							<code><a href='#s-6f17c00fe370ee631f2c4cb6ed4e7a09'>&lt;style</a></code>
+							<span class='signature_count'>(2)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("html","6f17c00fe370ee631f2c4cb6ed4e7a09")'>Hide</a>
+						</li>
+						
+					</ul>
+					
+					<h3><a onclick='javascript:wt.signature.toggle_group(this, "comments")'>comments [<span class='expand_collapse'>-</span>]</a></h3>
+
+					<ul class='signature_group_comments'>
+						
+						<li class='c11bb7eec8b60626961f63cda07648ac'>
+							<code><a href='#s-c11bb7eec8b60626961f63cda07648ac'>&lt;!--</a></code>
+							<span class='signature_count'>(2)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("html","c11bb7eec8b60626961f63cda07648ac")'>Hide</a>
+						</li>
+						
+					</ul>
+					
+				</nav>
+				
+				<div class='column_content'>
+          
+					
+					
+					
+					
+					
+					
+					
+					
+
+					
+
+					<div class='signature_cdc25cdd05ee25c9ea83a53a4aa750dd signature_group_inputs signature_group'>
+						<a name='s-cdc25cdd05ee25c9ea83a53a4aa750dd'></a><br>
+
+					<div class='group_signature_info'>          
+					
+            <h2>HTML Input Elements</h2><p>HTML input elements are used to create interactive controls for web applications. They allow user to enter data and store the input values. Input that are being used as part or all of a URL loaded by the app can be subjected to DOM based XSS.  Since attacker can inject malicious Javascript code into the HTML inputs, it is necessary to validate the data before escaping to prevent malicious code from executing.</p>
+            
+          			
+					</div>
+						<br><h3>
+							<code><b>inputs: &lt;input</b></code>
+							<span class='signature_count'>(1)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("html","cdc25cdd05ee25c9ea83a53a4aa750dd")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>The &lt;input&gt; tag is used to create interactive controls where the user can enter data in a HTML form.  If the data entered by user are not sanitized properly, attacker can perform DOM XSS attack by injecting dangerous Javascript code in the input field.<br><br><a href='https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'>Click here for more information on &lt;input&gt; tag</a></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 1</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/tests/matrix_search_test.html</span>:<span class='line_number'>111</span>
+                                <span class='match_count'>(1/1)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>107-&lt;/head&gt;
+108-
+109-&lt;body&gt;
+110-    &lt;div id=&quot;main&quot;&gt;
+111:        <span class='match_highlight'>&lt;input</span> type=&quot;text&quot; id=&quot;py-text&quot; placeholder=&quot;Enter Pinyin&quot; value=&quot;fangan&quot; /&gt;
+112:        <span class='match_highlight'>&lt;input</span> type=&quot;button&quot; id=&quot;reset&quot; value=&quot;reset&quot; /&gt;
+113:        <span class='match_highlight'>&lt;input</span> type=&quot;button&quot; id=&quot;search&quot; value=&quot;search&quot; /&gt;
+114:        <span class='match_highlight'>&lt;input</span> type=&quot;button&quot; id=&quot;delsearch&quot; value=&quot;delsearch&quot; /&gt;
+115:        <span class='match_highlight'>&lt;input</span> type=&quot;button&quot; id=&quot;convert-button&quot; value=&quot;Convert&quot; /&gt;
+116-        &lt;span id=&quot;display&quot; /&gt;
+117-    &lt;/div&gt;
+118-    &lt;hr /&gt;
+119-    &lt;div id=&quot;candidates&quot;&gt;
+120:        <span class='match_highlight'>&lt;input</span> type=&quot;text&quot; id=&quot;predict-input&quot; placeholder=&quot;Enter a Word&quot; value=&quot;你&quot; /&gt;
+121:        <span class='match_highlight'>&lt;input</span> type=&quot;button&quot; id=&quot;predict-button&quot; value=&quot;Predict&quot; /&gt;
+122-        &lt;span id=&quot;predict-display&quot; /&gt;
+123-    &lt;/div&gt;
+124-&lt;/body&gt;
+125-&lt;/html&gt;</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li><i>&quot;Untrusted data should only be treated as displayable text. Never treat untrusted data as code or markup within Javascript code.</li>
+						<li>Always Javascript encode and delimit untrusted data as quoted strings when entering the application&quot;</i>(OWSAP)</li></ul></p><br> 
+					
+
+					<div class='signature_ea02e39fa43dc914db8a9250c86fa57d signature_group_inputs signature_group'>
+						<a name='s-ea02e39fa43dc914db8a9250c86fa57d'></a><br>
+
+					<div class='group_signature_info'>          
+								
+					</div>
+						<br><h3>
+							<code><b>inputs: &lt;script</b></code>
+							<span class='signature_count'>(7)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("html","ea02e39fa43dc914db8a9250c86fa57d")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>The &lt;script&gt; tag is used to define a client-side script within a HTML document.  The &lt;script&gt; element either 
+						contains inline scripts, or points to a remote script file through the src attribute.  Under Mozilla's Content Security Policy, remote script 
+						and inline script are banned on privileged and certified apps.  Javascript should be escaped before inserting untrusted data into Javascript 
+						data values. The only safe place to put untrusted data into the code is inside a quoted &quot;data value.&quot; Including untrusted data 
+						inside any other Javascript context is quite dangerous, as it is extremely easy to switch into an execution context with characters including 
+						&#40;but not limited to&#41; semi-colon, equals, space, plus, and many more, so use with caution.<br><br><center>&quot;<i>&lt;script&gt;...
+						NEVER PUT UNTRUSTED DATA HERE...&lt;&frasl;script&gt;directly in a script.</i>&quot;(OWASP)</center></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 7</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./index.html</span>:<span class='line_number'>6</span>
+                                <span class='match_count'>(1/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2-&lt;html&gt;
+3-&lt;head&gt;
+4-  &lt;meta charset=&quot;utf-8&quot;&gt;
+5-  &lt;title&gt;Keyboard Service&lt;/title&gt;
+6:  <span class='match_highlight'>&lt;script</span> type=&quot;text/javascript&quot; src=&quot;js/layout.js&quot;&gt;&lt;/script&gt;
+7:  <span class='match_highlight'>&lt;script</span> type=&quot;text/javascript&quot; src=&quot;js/render.js&quot;&gt;&lt;/script&gt;
+8:  <span class='match_highlight'>&lt;script</span> type=&quot;text/javascript&quot; src=&quot;js/keyboard.js&quot;&gt;&lt;/script&gt;
+9-  &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;style/keyboard.css&quot;&gt;
+10-&lt;/head&gt;
+11-&lt;body&gt;
+12-  &lt;div id=&quot;keyboard&quot; class=&quot;hide&quot; data-hidden=&quot;true&quot;&gt;&lt;/div&gt;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/tests/matrix_search_test.html</span>:<span class='line_number'>7</span>
+                                <span class='match_count'>(2/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2-
+3-&lt;html&gt;
+4-&lt;head&gt;
+5-    &lt;meta charset=&quot;utf-8&quot;&gt;
+6-    &lt;title&gt;MatrixSearch Tests&lt;/title&gt;
+7:    <span class='match_highlight'>&lt;script</span> type=&quot;text/javascript&quot;&gt;
+8-        var Test = {};
+9-    &lt;/script&gt;
+10:    <span class='match_highlight'>&lt;script</span> type=&quot;text/javascript&quot; src=&quot;../jspinyin.js&quot;&gt;&lt;/script&gt;
+11:    <span class='match_highlight'>&lt;script</span> type=&quot;text/javascript&quot; charset=&quot;utf-8&quot;&gt;
+12-        var FileSystemService = Test.FileSystemService;
+13-        var MatrixSearch = Test.MatrixSearch;
+14-        var USER_DICT_FILE_NAME = 'idb://user_dict_test_file';
+15-        var SYS_DICT_FILE_NAME = 'xhr://../db.json';</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/tests/matrix_search_test.html</span>:<span class='line_number'>106</span>
+                                <span class='match_count'>(3/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>101-          }
+102-        };
+103-        window.addEventListener('load', MatrixSearchTest.init, false);
+104-        window.addEventListener('unload', MatrixSearchTest.unint, false);
+105-    &lt;/script&gt;
+106:    <span class='match_highlight'>&lt;script</span> type=&quot;text/javascript&quot; src=&quot;../jspinyin.js&quot;&gt;&lt;/script&gt;
+107-&lt;/head&gt;
+108-
+109-&lt;body&gt;
+110-    &lt;div id=&quot;main&quot;&gt;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./test/unit/_proxy.html</span>:<span class='line_number'>7</span>
+                                <span class='match_count'>(4/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2-&lt;html&gt;
+3-&lt;head&gt;
+4-  &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+5-  &lt;title&gt;Serve the tests&lt;/title&gt;
+6-
+7:  <span class='match_highlight'>&lt;script</span> type=&quot;text/javascript&quot; charset=&quot;utf-8&quot;&gt;
+8-  (function(window){
+9-    var Loader = window.CommonResourceLoader = {},
+10-        host = document.location.host,
+11-        domain = host.replace(/(^[\w\d-]+\.)?([\w\d]+\.[a-z]+)/, 'test-agent.$2');</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./test/unit/_proxy.html</span>:<span class='line_number'>20</span>
+                                <span class='match_count'>(5/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>15-      return this.domain + url;
+16-    }
+17-
+18-    Loader.script = function(url, doc){
+19-      doc = doc || document;
+20:      doc.write('<span class='match_highlight'>&lt;script</span> type=&quot;application/javascript;version=1.8&quot; src=&quot;' + this.url(url) + '&quot;&gt;&lt;\/script&gt;');
+21-      return this;
+22-    };
+23-  }(this));
+24-  &lt;/script&gt;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./test/unit/_proxy.html</span>:<span class='line_number'>40</span>
+                                <span class='match_count'>(6/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>35-
+36-&lt;!-- Test Agent UI will be loaded in here --&gt;
+37-&lt;div id=&quot;test-agent-ui&quot;&gt;
+38-&lt;/div&gt;
+39-
+40:<span class='match_highlight'>&lt;script</span> type=&quot;text/javascript&quot; charset=&quot;utf-8&quot;&gt;
+41-CommonResourceLoader.
+42-  script('/common/test/test_url_resolver.js').
+43-  script('/common/vendor/test-agent/test-agent.js').
+44-  script('/common/test/agent_proxy.js');</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./test/unit/_sandbox.html</span>:<span class='line_number'>13</span>
+                                <span class='match_count'>(7/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>8-    iframe {
+9-      border: none;
+10-      padding: 0px;
+11-    }
+12-  &lt;/style&gt;
+13:  <span class='match_highlight'>&lt;script</span> type=&quot;text/javascript&quot; charset=&quot;utf-8&quot;&gt;
+14-  &lt;/script&gt;
+15-&lt;/head&gt;
+16-
+17-&lt;body&gt;</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul>
+                   <li><i>&quot;&lt;script&gt;alert&#40;&#39;...ESCAPE UNTRUSTED DATA BEFORE PUTTING HERE...&#39;&#41;&lt;&#47;script&gt;     inside a quoted string</i></li> 
+                   <li><i>&lt;script&gt;x=&#39;...ESCAPE UNTRUSTED DATA BEFORE PUTTING HERE...&#39;&#41;&lt;&#47;script&gt;          one side of a quoted expression</i>&quot;(OWASP)</li>
+                   <li>Developers are not allowed to point a &lt;script&gt; at a remote Javascript file.  All JS files that are referenced must be included in your app's package.</li>
+                   <li><i>All &lt;script&gt; tags must have an src=&quot;&quot; attribute. You may not use script attributes like onclick=&quot;&quot; or onload=&quot;&quot;.</i></li>(Mozilla Developer Network:App CSP)
+                   <li>Avoid doing inline scripting</li></ul></p><br> 
+					
+
+					<div class='signature_6f17c00fe370ee631f2c4cb6ed4e7a09 signature_group_dangerous signature_group'>
+						<a name='s-6f17c00fe370ee631f2c4cb6ed4e7a09'></a><br>
+
+					<div class='group_signature_info'>          
+					
+            <h2>Dangerous Functions</h2><br>
+            
+								
+					</div>
+						<br><h3>
+							<code><b>dangerous: &lt;style</b></code>
+							<span class='signature_count'>(2)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("html","6f17c00fe370ee631f2c4cb6ed4e7a09")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>The &lt;style&gt; tag is used to define style information for an HTML document on how the HTML elements should render in a browser.  HTML's style tag can be vulnerable to Javascript injection.
+<br><br>Example:<br><br><center><i>&lt;style type=text/javascript&gt;alert(&#39;malicious code&#39;)&lt;/style&gt;</i></center></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 2</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./test/unit/_proxy.html</span>:<span class='line_number'>26</span>
+                                <span class='match_count'>(1/2)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>22-    };
+23-  }(this));
+24-  &lt;/script&gt;
+25-
+26:  <span class='match_highlight'>&lt;style</span> type=&quot;text/css&quot; media=&quot;all&quot;&gt;
+27-    html,body,iframe {
+28-      height: 100%;
+29-      width: 100%;
+30-    }</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./test/unit/_sandbox.html</span>:<span class='line_number'>7</span>
+                                <span class='match_count'>(2/2)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2-&lt;html&gt;
+3-&lt;head&gt;
+4-  &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+5-  &lt;title&gt;Tests&lt;/title&gt;
+6-  &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;/vendor/mocha/mocha.css&quot; /&gt;
+7:  <span class='match_highlight'>&lt;style</span> type=&quot;text/css&quot; media=&quot;all&quot;&gt;
+8-    iframe {
+9-      border: none;
+10-      padding: 0px;
+11-    }</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li>Never put untrusted data inside the style tags</li>
+						<li><i>&quot;Only use untrusted data in a property value and not into other places in style data&quot;</i> (<a href='https://www.owasp.org/index.php/XSS_%28Cross_Site_Scripting%29_Prevention_Cheat_Sheet#RULE_.234_-_CSS_Escape_And_Strictly_Validate_Before_Inserting_Untrusted_Data_into_HTML_Style_Property_Values'>OWASP</a>, 2013)</li></ul></p><br> 
+					
+
+					<div class='signature_c11bb7eec8b60626961f63cda07648ac signature_group_comments signature_group'>
+						<a name='s-c11bb7eec8b60626961f63cda07648ac'></a><br>
+
+					<div class='group_signature_info'>          
+					
+            <h2>Comments Tags</h2><br>
+            
+          			
+					</div>
+						<br><h3>
+							<code><b>comments: &lt;!--</b></code>
+							<span class='signature_count'>(2)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("html","c11bb7eec8b60626961f63cda07648ac")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>The HTML 'comments' tag allows developer to create comments within the HTML code.  Comments can assist HTML developer to write notes to explain what the code does but they are not displayed in the browsers. It is possible to execute Javascript within the HTML comment tag.</p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 2</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./index.html</span>:<span class='line_number'>13</span>
+                                <span class='match_count'>(1/2)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>9-  &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;style/keyboard.css&quot;&gt;
+10-&lt;/head&gt;
+11-&lt;body&gt;
+12-  &lt;div id=&quot;keyboard&quot; class=&quot;hide&quot; data-hidden=&quot;true&quot;&gt;&lt;/div&gt;
+13:  <span class='match_highlight'>&lt;!--</span> This is to pre-load styles for keys avoiding flickering --&gt;
+14-  &lt;div class=&quot;cache&quot;&gt;
+15-    &lt;button class=&quot;keyboard-key&quot;&gt;&lt;span class=&quot;visual-wrapper&quot;&gt;&lt;span&gt;C&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;
+16-    &lt;button class=&quot;keyboard-key highlighted&quot;&gt;&lt;span class=&quot;visual-wrapper&quot;&gt;&lt;span&gt;C&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;
+17-    &lt;button class=&quot;keyboard-key special-key&quot;&gt;&lt;span class=&quot;visual-wrapper&quot;&gt;&lt;span&gt;C&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./test/unit/_proxy.html</span>:<span class='line_number'>36</span>
+                                <span class='match_count'>(2/2)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>31-  &lt;/style&gt;
+32-
+33-&lt;/head&gt;
+34-&lt;body&gt;
+35-
+36:<span class='match_highlight'>&lt;!--</span> Test Agent UI will be loaded in here --&gt;
+37-&lt;div id=&quot;test-agent-ui&quot;&gt;
+38-&lt;/div&gt;
+39-
+40-&lt;script type=&quot;text/javascript&quot; charset=&quot;utf-8&quot;&gt;</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li><i>&quot;<&lt;	&#33;--...NEVER PUT UNTRUSTED DATA HERE...--&gt;             inside an HTML comment&quot;</i> (<a href='https://www.owasp.org/index.php/XSS_%28Cross_Site_Scripting%29_Prevention_Cheat_Sheet'>OWASP</a>)</p><br> 
+					
+					
+				</div> <!-- column_content -->
+			</div> <!-- @close_filetype -->
+			
+			<!-- filetype -->
+			<div id='filetype_js'>
+
+				<nav class='column_nav'>
+                    <span class='pin'><a href='javascript:wt.toggle_pin()'>pin</a></span>
+
+					
+					<h3><a onclick='javascript:wt.signature.toggle_group(this, "execution_sinks")'>execution sinks [<span class='expand_collapse'>-</span>]</a></h3>
+
+					<ul class='signature_group_execution_sinks'>
+						
+						<li class='7f1a65e67911288f6a8293572bb61576'>
+							<code><a href='#s-7f1a65e67911288f6a8293572bb61576'>setTimeout(</a></code>
+							<span class='signature_count'>(22)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("js","7f1a65e67911288f6a8293572bb61576")'>Hide</a>
+						</li>
+						
+						<li class='b83a7cb1cf2ec508dc15c03eaddf6187'>
+							<code><a href='#s-b83a7cb1cf2ec508dc15c03eaddf6187'>setInterval(</a></code>
+							<span class='signature_count'>(1)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("js","b83a7cb1cf2ec508dc15c03eaddf6187")'>Hide</a>
+						</li>
+						
+					</ul>
+					
+					<h3><a onclick='javascript:wt.signature.toggle_group(this, "HTMLElement_sinks")'>HTMLElement sinks [<span class='expand_collapse'>-</span>]</a></h3>
+
+					<ul class='signature_group_HTMLElement_sinks'>
+						
+						<li class='85c506afbabb53c336dc0884109b5bdf'>
+							<code><a href='#s-85c506afbabb53c336dc0884109b5bdf'>.innerHTML</a></code>
+							<span class='signature_count'>(7)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("js","85c506afbabb53c336dc0884109b5bdf")'>Hide</a>
+						</li>
+						
+					</ul>
+					
+					<h3><a onclick='javascript:wt.signature.toggle_group(this, "url_sinks")'>url sinks [<span class='expand_collapse'>-</span>]</a></h3>
+
+					<ul class='signature_group_url_sinks'>
+						
+						<li class='5f5920a83492ea2acbe201ab1f47518a'>
+							<code><a href='#s-5f5920a83492ea2acbe201ab1f47518a'>\.src</a></code>
+							<span class='signature_count'>(1)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("js","5f5920a83492ea2acbe201ab1f47518a")'>Hide</a>
+						</li>
+						
+						<li class='3896d6cff32e6cea01546acdd330ce78'>
+							<code><a href='#s-3896d6cff32e6cea01546acdd330ce78'>\.data</a></code>
+							<span class='signature_count'>(25)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("js","3896d6cff32e6cea01546acdd330ce78")'>Hide</a>
+						</li>
+						
+						<li class='d9f9b0f82813d813afe0d450e9fab4d6'>
+							<code><a href='#s-d9f9b0f82813d813afe0d450e9fab4d6'>document.location</a></code>
+							<span class='signature_count'>(1)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("js","d9f9b0f82813d813afe0d450e9fab4d6")'>Hide</a>
+						</li>
+						
+						<li class='3abd3830a1b495d5f793dfd4ed160af5'>
+							<code><a href='#s-3abd3830a1b495d5f793dfd4ed160af5'>window.location</a></code>
+							<span class='signature_count'>(3)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("js","3abd3830a1b495d5f793dfd4ed160af5")'>Hide</a>
+						</li>
+						
+					</ul>
+					
+					<h3><a onclick='javascript:wt.signature.toggle_group(this, "privileged_functions")'>privileged functions [<span class='expand_collapse'>-</span>]</a></h3>
+
+					<ul class='signature_group_privileged_functions'>
+						
+						<li class='d66e006c79e9ff4d2f42ac8030dd17b9'>
+							<code><a href='#s-d66e006c79e9ff4d2f42ac8030dd17b9'>mozSettings</a></code>
+							<span class='signature_count'>(4)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("js","d66e006c79e9ff4d2f42ac8030dd17b9")'>Hide</a>
+						</li>
+						
+						<li class='cbdff59531e98cd1341ee792207e3a1e'>
+							<code><a href='#s-cbdff59531e98cd1341ee792207e3a1e'>mozKeyboard</a></code>
+							<span class='signature_count'>(7)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("js","cbdff59531e98cd1341ee792207e3a1e")'>Hide</a>
+						</li>
+						
+					</ul>
+					
+					<h3><a onclick='javascript:wt.signature.toggle_group(this, "client_side_storage")'>client side storage [<span class='expand_collapse'>-</span>]</a></h3>
+
+					<ul class='signature_group_client_side_storage'>
+						
+						<li class='d088696e0fa63cd5481a48d057f64385'>
+							<code><a href='#s-d088696e0fa63cd5481a48d057f64385'>indexedDB</a></code>
+							<span class='signature_count'>(21)</span>
+							<a class='show_hide' onclick='wt.signature.toggle("js","d088696e0fa63cd5481a48d057f64385")'>Hide</a>
+						</li>
+						
+					</ul>
+					
+				</nav>
+				
+				<div class='column_content'>
+          
+					
+					
+					
+					
+					
+					
+					
+					
+
+					
+
+					<div class='signature_7f1a65e67911288f6a8293572bb61576 signature_group_execution_sinks signature_group'>
+						<a name='s-7f1a65e67911288f6a8293572bb61576'></a><br>
+
+					<div class='group_signature_info'>          
+					
+            <h2>Javascript Execution Sinks</h2><p>Execution sinks are Javascript functions that parse strings as Javascript.  it is dangerous to put untrusted data directly into a command execution context.  Incorrect parsing of any untrusted data can lead to DOM based XSS vulnerabilities.</p>
+            
+          			
+					</div>
+						<br><h3>
+							<code><b>execution_sinks: setTimeout(</b></code>
+							<span class='signature_count'>(22)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("js","7f1a65e67911288f6a8293572bb61576")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>The Javascript's setTimeout() method is a time event which executes a function once after a specified time delay in milliseconds.  If an argument that is passed to the setTimeout function can be to control or manipulate by user, without any sanitization to the argument, attacker can use malicious Javascript to execute DOM XSS attack.<br><br>Example:<br><br><center><i>&quot;setTimeout(&quot;jsCode&quot;+usercontrolledVal ,timeMs);&quot;</i> (<a href='http://code.google.com/p/domxsswiki/wiki/ExecutionSinks'>DomXSSWiki</a>)</center><br><br></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 22</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1648</span>
+                                <span class='match_count'>(1/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1644-          return;
+1645-        }
+1646-
+1647-        xhr = null;
+1648:        <span class='match_highlight'>setTimeout(</span>performBuildIndices, 100);
+1649-      };
+1650-
+1651-      var performBuildIndices = function init_performBuildIndices() {
+1652-        self._buildIndices();</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1705</span>
+                                <span class='match_count'>(2/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1700-        // Query all terms
+1701-        homonymsArray = homonymsArray.concat(self._dataArray);
+1702-        doCallback();
+1703-      }
+1704-
+1705:      <span class='match_highlight'>setTimeout(</span>perform, 0);
+1706-    },
+1707-
+1708-    getTermsByKana: function jsonStorage_getTermsByKana(kanaStr, callback) {
+1709-      var self = this;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1732</span>
+                                <span class='match_count'>(3/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1727-          homonymsArray.push(self._dataArray[index]);
+1728-        }
+1729-        doCallback();
+1730-      }
+1731-
+1732:      <span class='match_highlight'>setTimeout(</span>perform, 0);
+1733-    },
+1734-
+1735-   getTermsByKanaPrefix: function
+1736-     jsonStorage_getTermsByKanaPrefix(prefix, callback) {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1764</span>
+                                <span class='match_count'>(4/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1759-           homonymsArray.push(self._dataArray[index]);
+1760-         }
+1761-         doCallback();
+1762-       }
+1763-
+1764:       <span class='match_highlight'>setTimeout(</span>perform, 0);
+1765-     },
+1766-
+1767-   _buildIndices: function jsonStorage_buildIndices() {
+1768-     this._kanaIndex = new Index(this._dataArray, 'kana');</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1994</span>
+                                <span class='match_count'>(5/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1989-            self._count = n;
+1990-            doCallback();
+1991-          });
+1992-
+1993-      var processNextWithDelay = function setAllTerms_rocessNextWithDelay() {
+1994:        <span class='match_highlight'>setTimeout(</span>function nextTask() {
+1995-          taskQueue.processNext();
+1996-        }, 0);
+1997-      };
+1998-</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>2164</span>
+                                <span class='match_count'>(6/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2159-     * Data from IndexedDB gets to kept in iDBCache for kCacheTimeout seconds
+2160-     */
+2161-    var cacheSetTimeout = function imedb_cacheSetTimeout() {
+2162-      debug('Set iDBCache timeout.');
+2163-      clearTimeout(cacheTimer);
+2164:      cacheTimer = <span class='match_highlight'>setTimeout(</span>function imedb_cacheTimeout() {
+2165-        debug('Empty iDBCache.');
+2166-        iDBCache = {};
+2167-      }, kCacheTimeout);
+2168-    };</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>989</span>
+                                <span class='match_count'>(7/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>984-    });
+985-
+986-    var processNextWithDelay =
+987-        function fileSystemService_rocessNextWithDelay() {
+988-      if (typeof setTimeout != 'undefined') {
+989:        <span class='match_highlight'>setTimeout(</span>function nextTask() {
+990-          taskQueue.processNext();
+991-        }, 0);
+992-      } else {
+993-        taskQueue.processNext();</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>2725</span>
+                                <span class='match_count'>(8/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2720-      doCallback();
+2721-    });
+2722-
+2723-    var processNextWithDelay = function init_processNextWithDelay() {
+2724-      if (typeof setTimeout != 'undefined') {
+2725:        <span class='match_highlight'>setTimeout(</span>function nextTask() {
+2726-          taskQueue.processNext();
+2727-        }, 0);
+2728-      } else {
+2729-        taskQueue.processNext();</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>5553</span>
+                                <span class='match_count'>(9/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>5548-    });
+5549-
+5550-    var processNextWithDelay =
+5551-        function load_rocessNextWithDelay() {
+5552-      if (typeof setTimeout != 'undefined') {
+5553:        <span class='match_highlight'>setTimeout(</span>function nextTask() {
+5554-          taskQueue.processNext();
+5555-        }, 0);
+5556-      } else {
+5557-        taskQueue.processNext();</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>6840</span>
+                                <span class='match_count'>(10/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>6835-      doCallback();
+6836-    });
+6837-
+6838-    var processNextWithDelay = function dictBuilder_processNextWithDelay() {
+6839-      if (typeof setTimeout != 'undefined') {
+6840:        <span class='match_highlight'>setTimeout(</span>function nextTask() {
+6841-          taskQueue.processNext();
+6842-        }, 0);
+6843-      } else {
+6844-        taskQueue.processNext();</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>8147</span>
+                                <span class='match_count'>(11/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>8142-    });
+8143-
+8144-    var processNextWithDelay =
+8145-        function load_rocessNextWithDelay() {
+8146-      if (typeof setTimeout != 'undefined') {
+8147:        <span class='match_highlight'>setTimeout(</span>function nextTask() {
+8148-          taskQueue.processNext();
+8149-        }, 0);
+8150-      } else {
+8151-        taskQueue.processNext();</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>8214</span>
+                                <span class='match_count'>(12/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>8209-    });
+8210-
+8211-    var processNextWithDelay =
+8212-        function close_rocessNextWithDelay() {
+8213-      if (typeof setTimeout != 'undefined') {
+8214:        <span class='match_highlight'>setTimeout(</span>function nextTask() {
+8215-          taskQueue.processNext();
+8216-        }, 0);
+8217-      } else {
+8218-        taskQueue.processNext();</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jszhuyin/jszhuyin.js</span>:<span class='line_number'>763</span>
+                                <span class='match_count'>(13/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>758-          debug('Problem while populating DB with JSON data.');
+759-        };
+760-
+761-        transaction.oncomplete = function putComplete() {
+762-          if (chunks.length) {
+763:            window.<span class='match_highlight'>setTimeout(</span>addChunk, 0);
+764-          } else {
+765-            jsonData = null;
+766:            window.<span class='match_highlight'>setTimeout(</span>callback, 0);
+767-          }
+768-        };
+769-
+770-        var syllables;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jszhuyin/jszhuyin.js</span>:<span class='line_number'>783</span>
+                                <span class='match_count'>(14/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>778-            terms: jsonData[syllables]
+779-          });
+780-        }
+781-      };
+782-
+783:      window.<span class='match_highlight'>setTimeout(</span>addChunk, 0);
+784-    };
+785-
+786-    var getTermsJSON = function imedb_getTermsJSON(callback) {
+787-      getWordsJSON(function getWordsJSONCallback() {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jszhuyin/jszhuyin.js</span>:<span class='line_number'>904</span>
+                                <span class='match_count'>(15/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>899-    * Data from IndexedDB gets to kept in iDBCache for kCacheTimeout seconds
+900-    */
+901-    var cacheSetTimeout = function imedb_cacheSetTimeout() {
+902-      debug('Set iDBCache timeout.');
+903-      clearTimeout(cacheTimer);
+904:      cacheTimer = window.<span class='match_highlight'>setTimeout(</span>function imedb_cacheTimeout() {
+905-        debug('Empty iDBCache.');
+906-        iDBCache = {};
+907-      }, kCacheTimeout);
+908-    };</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/latin/latin.js</span>:<span class='line_number'>148</span>
+                                <span class='match_count'>(16/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>143-  }
+144-
+145-  function deactivate() {
+146-    if (!worker || idleTimer)
+147-      return;
+148:    idleTimer = <span class='match_highlight'>setTimeout(</span>function onIdleTimeout() {
+149-      // Let's terminate the worker.
+150-      worker.terminate();
+151-      worker = null;
+152-      idleTimer = null;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/latin/latin.js</span>:<span class='line_number'>273</span>
+                                <span class='match_count'>(17/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>268-      clearTimeout(suggestionsTimer);
+269-      suggestionsTimer = null;
+270-    }
+271-
+272-    if (repeat) {
+273:      suggestionsTimer = <span class='match_highlight'>setTimeout(</span>updateSuggestions, autorepeatDelay);
+274-      return;
+275-    }
+276-
+277-    // If we're not at the end of a word, we want to clear any suggestions</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>396</span>
+                                <span class='match_count'>(18/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>391-      return;
+392-
+393-    // We can get multiple focuschange events in rapid succession
+394-    // so wait a bit before responding to see if we get another.
+395-    clearTimeout(focusChangeTimeout);
+396:    focusChangeTimeout = <span class='match_highlight'>setTimeout(</span>function switchKeyboard() {
+397-      if (type === 'blur') {
+398-        hideKeyboard();
+399-      } else {
+400-        showKeyboard(state);</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>809</span>
+                                <span class='match_count'>(19/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>804-  // This avoids paving over menuTimeout with a new timeout id
+805-  // from a separate touch.
+806-  if (touchCount &gt; 1)
+807-    return;
+808-
+809:  menuTimeout = window.<span class='match_highlight'>setTimeout(</span>function menuTimeout() {
+810-    // Don't try to show the alternatives menu if it's already showing,
+811-    // or if there's more than one touch on the screen.
+812-    if (isShowingAlternativesMenu || touchCount &gt; 1)
+813-      return;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1062</span>
+                                <span class='match_count'>(20/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1057-
+1058-    // First, just pressing (without feedback)
+1059-    sendDelete(false);
+1060-
+1061-    // Second, after a delay (with feedback)
+1062:    deleteTimeout = window.<span class='match_highlight'>setTimeout(</span>function() {
+1063-      sendDelete(true);
+1064-
+1065-      // Third, after shorter delay (with feedback too)
+1066-      deleteInterval = setInterval(function() {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1300</span>
+                                <span class='match_count'>(21/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1295-
+1296-      // Normal behavior: set timeout for second tap and toggle caps
+1297-    } else {
+1298-
+1299-      isWaitingForSecondTap = true;
+1300:      window.<span class='match_highlight'>setTimeout(</span>
+1301-        function() {
+1302-          isWaitingForSecondTap = false;
+1303-        },
+1304-        CAPS_LOCK_TIMEOUT</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./test/unit/latin_test.js</span>:<span class='line_number'>365</span>
+                                <span class='match_count'>(22/22)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>360-      });
+361-      // Send some input and see if we get completions
+362-      im.click('t'.charCodeAt(0));
+363-
+364-      // Wait 200ms to see if we get suggestions
+365:      suggestionsTimer = <span class='match_highlight'>setTimeout(</span>function() {
+366-        if (!expected) {
+367-          done(assert.ok(true)); // we didn't expect any and didn't get any
+368-        }
+369-        else {</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li>setTimeout (with a string argument) should actually be prevented by the default CSP policy, and it should not be present in a privileged or certified web app</li></ul></p><br> 
+					
+
+					<div class='signature_b83a7cb1cf2ec508dc15c03eaddf6187 signature_group_execution_sinks signature_group'>
+						<a name='s-b83a7cb1cf2ec508dc15c03eaddf6187'></a><br>
+
+					<div class='group_signature_info'>          
+								
+					</div>
+						<br><h3>
+							<code><b>execution_sinks: setInterval(</b></code>
+							<span class='signature_count'>(1)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("js","b83a7cb1cf2ec508dc15c03eaddf6187")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>The Javascript's setInterval() method is a time event which executes a function repeatedly at specified time intervals.  If an argument that is passed to the setInterval function can be to control or manipulate by user, without any sanitization to the argument, attacker can use malicious Javascript to execute DOM XSS attack.<br><br>Example:<br><br><center><i>&quot;setInterval(&quot;jsCode&quot;+usercontrolledVal ,timeMs);&quot;</i> (<a href='http://code.google.com/p/domxsswiki/wiki/ExecutionSinks'>DomXSSWiki</a>)</center></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 1</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1066</span>
+                                <span class='match_count'>(1/1)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1062-    deleteTimeout = window.setTimeout(function() {
+1063-      sendDelete(true);
+1064-
+1065-      // Third, after shorter delay (with feedback too)
+1066:      deleteInterval = <span class='match_highlight'>setInterval(</span>function() {
+1067-        sendDelete(true);
+1068-      }, REPEAT_RATE);
+1069-
+1070-    }, REPEAT_TIMEOUT);</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li>setinterval (with a string argument) should actually be prevented by the default CSP policy, and it should not be present in a privileged or certified web app</li></ul></p><br> 
+					
+
+					<div class='signature_85c506afbabb53c336dc0884109b5bdf signature_group_HTMLElement_sinks signature_group'>
+						<a name='s-85c506afbabb53c336dc0884109b5bdf'></a><br>
+
+					<div class='group_signature_info'>          
+					
+            <h2>HTMLElement Sinks</h2><p>HTMLElement sinks allow HTML manipulation in DOM environment. If the tainted variable gets passed to a sink without first being sanitized, it can lead to DOM based XSS attacks.</p>
+            
+          			
+					</div>
+						<br><h3>
+							<code><b>HTMLElement_sinks: .innerHTML</b></code>
+							<span class='signature_count'>(7)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("js","85c506afbabb53c336dc0884109b5bdf")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>The innerHTML element is used to &quot;<i>...set or get the HTML syntax describing the element&rsquo;s descendants</i>&quot;(Mozilla Developer Network).  It renders HTML content within Javascript and creates the HTML Subcontext within the Execution Context. If  untrusted input is passed to innerHTML, DOM based XSS vulnerability could result.<br><br>
+						If you are doing <i>element.innerHTML += &quot;markup&quot;</i>, The may create DOM corruption issue. <i>&quot;When browser parses the new string that contains the serialization of the old descendants followed by some new markup.  The old descendants might have been script-inserted to form a subtree that does not round-trip when serialized as HTML and reparsed. In that case, after the operation, the tree would have a different shape even for the &quot;old&quot; parts&quot;</i>(<a href='https://hacks.mozilla.org/2011/11/insertadjacenthtml-enables-faster-html-snippet-injection/'>Sivonen</a>, 2011)  
+						In addition, the nodes created by the parser would be different nodes compared to the children nodes at first even though they may looked the same after serializing and reparsing.  innerHTML can be vulnerable to DOM based XSS if the data passes through contains malicious Javascript code.<br><br>Example:<br><br><center><i>&quot;divEl.innerHTML = &quot;htmlString&quot;+ usercontrolledVal&quot;</i></center><br><br>
+						<i>&quot;If it is possible to control, even partially, the vulnerable argument, then it is possible to manipulate, to some extent the HTML and consequently, gain control of the user interface or execute JavaScript using classic Cross Site Scripting attacks.&quot;</i>(<a href='http://code.google.com/p/domxsswiki/wiki/HTMLElementSinks'>DomXSSWiki</a>)<br><br><a href='https://developer.mozilla.org/en-US/docs/Web/API/element.innerHTML'>Click here for more information about innerHTML</a></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 7</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>155</span>
+                                <span class='match_count'>(1/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>151-    content += '&lt;span id=&quot;keyboard-accent-char-menu-out&quot;&gt;' +
+152-               '&lt;span id=&quot;keyboard-accent-char-menu&quot;&gt;&lt;/span&gt;&lt;/span&gt;';
+153-    content += '&lt;span id=&quot;keyboard-key-highlight&quot;&gt;&lt;/span&gt;';
+154-
+155:    this.ime<span class='match_highlight'>.innerHTML</span> = content;
+156-    this.menu = document.getElementById('keyboard-accent-char-menu');
+157-
+158-    // Builds candidate panel
+159-    if (layout.needsCandidatePanel || flags.showCandidatePanel) {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>221</span>
+                                <span class='match_count'>(2/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>216-          typeof highlightState === 'undefined') {
+217-        pendingSymbolPanel.textContent = symbols;
+218-        return;
+219-      }
+220-
+221:      pendingSymbolPanel<span class='match_highlight'>.innerHTML</span> = &quot;&lt;span class='&quot; +
+222-                                     HIGHLIGHT_COLOR_TABLE[highlightState] +
+223-                                     &quot;'&gt;&quot; +
+224-                                     symbols.slice(
+225-                                       highlightStart, highlightEnd) +</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>242</span>
+                                <span class='match_count'>(3/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>237-    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+238-    var isFullView = ime.classList.contains('full-candidate-panel');
+239-
+240-
+241-    if (candidatePanel) {
+242:      candidatePanel<span class='match_highlight'>.innerHTML</span> = '';
+243-
+244-      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+245-
+246-      // If there were too many candidate</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>298</span>
+                                <span class='match_count'>(4/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>293-        dataset
+294-      );
+295-
+296-      alreadyAdded[kbr] = true;
+297-    }
+298:    menu<span class='match_highlight'>.innerHTML</span> = content;
+299-
+300-    // Replace with the container
+301-    _altContainer = document.createElement('div');
+302-    _altContainer.style.display = 'inline-block';
+303-    _altContainer.style.width = key.style.width;
+304:    _altContainer<span class='match_highlight'>.innerHTML</span> = key<span class='match_highlight'>.innerHTML</span>;
+305-    _altContainer.className = key.className;
+306-    _menuKey = key;
+307-    key.parentNode.replaceChild(_altContainer, key);
+308-</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>353</span>
+                                <span class='match_count'>(5/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>348-      if (altChars.length === 1)
+349-        width = Math.max(width, key.offsetWidth);
+350-
+351-      content += buildKey(alt, '', width + 'px', dataset);
+352-    });
+353:    this.menu<span class='match_highlight'>.innerHTML</span> = content;
+354-
+355-    // Replace with the container
+356-    _altContainer = document.createElement('div');
+357-    _altContainer.style.display = 'inline-block';
+358-    _altContainer.style.width = key.style.width;
+359:    _altContainer<span class='match_highlight'>.innerHTML</span> = key<span class='match_highlight'>.innerHTML</span>;
+360-    _altContainer.className = key.className;
+361-    _altContainer.classList.add('kbr-menu-on');
+362-    _menuKey = key;
+363-    key.parentNode.replaceChild(_altContainer, key);</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>394</span>
+                                <span class='match_count'>(6/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>389-  };
+390-
+391-  // Hide the alternative menu
+392-  var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
+393-    this.menu = document.getElementById('keyboard-accent-char-menu');
+394:    this.menu<span class='match_highlight'>.innerHTML</span> = '';
+395-    this.menu.className = '';
+396-    this.menu.style.display = 'none';
+397-
+398-    if (_altContainer)</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>486</span>
+                                <span class='match_count'>(7/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>481-    return candidatePanel;
+482-  };
+483-
+484-  var candidatePanelToggleButtonCode = function() {
+485-    var toggleButton = document.createElement('span');
+486:    toggleButton<span class='match_highlight'>.innerHTML</span> = '⇪';
+487-    toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+488-    if (inputMethodName)
+489-      toggleButton.classList.add(inputMethodName);
+490-    toggleButton.dataset.keycode = -4;</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li>The element.innerHTML element should be avoided if possible. They can be made secure, but require an understanding of how each browser&#39;s Javascript engine works to make sure that all XSS vectors have been mitigated.  
+						One of them is to make dynamic updates to HTML in the DOM safe, HTML encoding should be before Javascript encoding all untrusted input.<br><br>Examples:<br><i>element.innerHTML = &quot;	&lt;%=Encoder.encodeForJS(Encoder.encodeForHTML(untrustedData))%&gt;	&quot;&#59;</i></li><br>
+						<li>Since there are ways to execute Javascript without using &lt;script&gt; elements, there will be a security risk when using innerHTML to set strings which you have no control over.</li>  
+						<li>Use element.textContent instead.  textContent does not interpret the passed content as HTML, but instead inserts it as raw text.</li>
+						<li>Avoid using element.innerHTML = &quot;...&quot;;, use document.createElement(&quot;...&quot;), element.setAttribute(&quot;...&quot;,&quot;value&quot;), element.appendChild(...), etc. to build dynamic interfaces instead.</li>
+						<li>When using element.setAttribute, avoid using command execution context attributes because the are considered dangerious. Ex: onclick or onblur</li>
+						<li>Use innerText as an alternative to mitigate against XSS in innerHTML. However, malicious code can still be executed depending on the tag which innerText is applied.</li>
+						<li>Instead of using element.innerHTML += &quot;markup&quot;, use element.insertAdjacentHTML(&quot;beforeend&quot;, &quot;markup&quot;)</li>
+						<li>anyElement.innerHTML is prevented by CSP</li></ul></p><br> 
+					
+
+					<div class='signature_5f5920a83492ea2acbe201ab1f47518a signature_group_url_sinks signature_group'>
+						<a name='s-5f5920a83492ea2acbe201ab1f47518a'></a><br>
+
+					<div class='group_signature_info'>          
+					
+            <h2>Url Sinks</h2><p>Url Sinks are used to set a DOM property to an HTML element.  <i>&quot;Input used as part or all of a URL loaded by the app can be a risk. Check for Javascript which:<br>
+<ul><li>assigns input to src, data, href, or action attributes on supported elements.</li>
+    <li>setting window.location, document.location etc.&quot; (<a href='https://developer.mozilla.org/en-US/docs/Web/Apps/Security_guidelines#Location_sinks'>Mozilla Developer Network:Security Guidelines</a>, 2013)</i></li></ul></p> 
+								
+					</div>
+						<br><h3>
+							<code><b>url_sinks: \.src</b></code>
+							<span class='signature_count'>(1)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("js","5f5920a83492ea2acbe201ab1f47518a")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>src is an attribute which specifies the URI of the content such as external script file to 
+						appear in the element .  It is important to make sure that the attacker cannot modify the location of the external script file or inject malicious script code.<br><br>Example:<br><br><ul><li>&lt;script&gt;maliciousScript&lt;&#8260;script&gt;;</li><br><li>&lt;img src=nonexistent onerror=maliciousCode&gt;</li></ul></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 1</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1446</span>
+                                <span class='match_count'>(1/1)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1442-  if (InputMethods[imEngine])
+1443-    return;
+1444-
+1445-  var script = document.createElement('script');
+1446:  script.src = sourceDir + imEngine + '/' + imEngine + '.js';
+1447-
+1448-  // glue is an object that lets the input method interact with the keyboard
+1449-  var glue = {
+1450-    path: sourceDir + imEngine,</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li><i>&quot;URL escape then Javascript escape Before inserting 
+						untrusted data into URL attribute subcontext within the execution context.&quot</i> (
+						<a href='https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet#RULE_.235_-_URL_Escape_then_Javascript_Escape_Before_Inserting_Untrusted_Data_into_URL_Attribute_Subcontext_within_the_Execution_Context'>OWASP</a>, 2012)</li>
+						<li><i>&quot;Perform cannonicalize input, URL validation, safe URL verification, whitelist http and https URL's only (Avoid the JavaScript Protocol to Open a new Window), or attribute encoder&quot; (<a href='https://www.owasp.org/index.php/XSS_%28Cross_Site_Scripting%29_Prevention_Cheat_Sheet#XSS_Prevention_Rules_Summary'>OWASP</a>. 2013)</li></ul> </p><br> 
+					
+
+					<div class='signature_3896d6cff32e6cea01546acdd330ce78 signature_group_url_sinks signature_group'>
+						<a name='s-3896d6cff32e6cea01546acdd330ce78'></a><br>
+
+					<div class='group_signature_info'>          
+								
+					</div>
+						<br><h3>
+							<code><b>url_sinks: \.data</b></code>
+							<span class='signature_count'>(25)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("js","3896d6cff32e6cea01546acdd330ce78")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p><i>&quot;The .data() method allows us to attach data of any type to DOM elements in a way that is safe from circular references and therefore from memory leaks.&quot;</i> (<a href='http://api.jquery.com/data/'>jQuery</a>)  If the data value being passed contains dangerious Javascript and it is used to render in a stream of parsed HTML, it can trigger a DOM based XSS attack.</p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 25</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1377</span>
+                                <span class='match_count'>(1/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1373-  };
+1374-
+1375-  var Task = function task_constructor(taskFunc, taskData) {
+1376-    this.func = taskFunc;
+1377:    this.data = taskData;
+1378-  };
+1379-
+1380-  Task.prototype = {
+1381-    /**</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1394</span>
+                                <span class='match_count'>(2/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1389-  };
+1390-
+1391-  var TaskQueue = function taskQueue_constructor(oncomplete) {
+1392-    this.oncomplete = oncomplete;
+1393-    this._queue = [];
+1394:    this.data = {};
+1395-  };
+1396-
+1397-  TaskQueue.prototype = {
+1398-    /**</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1436</span>
+                                <span class='match_count'>(3/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1431-     */
+1432-    processNext: function taskQueue_processNext() {
+1433-      if (this._queue.length &gt; 0) {
+1434-        var task = this._queue.shift();
+1435-        if (typeof task.func == 'function') {
+1436:          task.func(this, task.data);
+1437-        } else {
+1438-          this.processNext();
+1439-        }
+1440-      } else {
+1441-        if (typeof this.oncomplete == 'function') {
+1442:          this.oncomplete(this.data);
+1443-        }
+1444-      }
+1445-    },
+1446-</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>2413</span>
+                                <span class='match_count'>(4/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2408-          var sentence = sentences[sentences.length - 1];
+2409-          doCallback(sentence);
+2410-        }
+2411-      );
+2412-
+2413:      taskQueue.data = {
+2414-        sentences: [[], []],
+2415-        probabilities: [0, MAX_FREQUENCY],
+2416-        sentenceLength: 1,
+2417-        lastPhraseLength: 1
+2418-      };
+2419-
+2420-      var getSentenceSubTask = function getSentence_subTask(taskQueue,
+2421-                                                            taskData) {
+2422:        var queueData = taskQueue.data;
+2423-        var sentenceLength = queueData.sentenceLength;
+2424-        var lastPhraseLength = queueData.lastPhraseLength;
+2425-        var sentences = queueData.sentences;
+2426-        var probabilities = queueData.probabilities;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>136</span>
+                                <span class='match_count'>(5/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>131-  }
+132-};
+133-
+134-var Task = function task_constructor(taskFunc, taskData) {
+135-  this.func = taskFunc;
+136:  this.data = taskData;
+137-};
+138-
+139-Task.prototype = {
+140-  /**</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>153</span>
+                                <span class='match_count'>(6/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>148-};
+149-
+150-var TaskQueue = function taskQueue_constructor(oncomplete) {
+151-  this.oncomplete = oncomplete;
+152-  this._queue = [];
+153:  this.data = {};
+154-};
+155-
+156-TaskQueue.prototype = {
+157-  /**</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>194</span>
+                                <span class='match_count'>(7/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>189-   */
+190-  processNext: function taskQueue_processNext() {
+191-    if (this._queue.length &gt; 0) {
+192-      var task = this._queue.shift();
+193-      if (typeof task.func == 'function') {
+194:        task.func(this, task.data);
+195-      } else {
+196-        this.processNext();
+197-      }
+198-    } else {
+199-      if (typeof this.oncomplete == 'function') {
+200:        this.oncomplete(this.data);
+201-      }
+202-    }
+203-  },
+204-</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/latin/latin.js</span>:<span class='line_number'>173</span>
+                                <span class='match_count'>(8/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>168-      worker = new Worker('js/imes/latin/worker.js');
+169-      if (layoutParams)
+170-        worker.postMessage({ cmd: 'setLayout', args: [layoutParams]});
+171-
+172-      worker.onmessage = function(e) {
+173:        switch (e.data.cmd) {
+174-        case 'log':
+175:          console.log.apply(console, e.data.args);
+176-          break;
+177-        case 'unknownLanguage':
+178:          console.error('No dictionary for language', e.data.args[0]);
+179-          break;
+180-        case 'predictions':
+181:          keyboard.sendCandidates(e.data.args);
+182-          break;
+183-        }
+184-      }
+185-    }</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/latin/worker.js</span>:<span class='line_number'>36</span>
+                                <span class='match_count'>(9/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>31-importScripts('predictions.js');
+32-
+33-// When we receive messages, translate them into function calls to one
+34-// of the functions in the Commands object below.
+35-self.onmessage = function(e) {
+36:  Commands[e.data.cmd].apply(null, e.data.args);
+37-};
+38-
+39-// Send console messages back to the main thread with this method
+40-function log(msg) {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>768</span>
+                                <span class='match_count'>(10/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>763-}
+764-
+765-// Inform about a change in the displayed application via mutation observer
+766-// http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
+767-function updateTargetWindowHeight(hide) {
+768:  if (IMERender.ime.dataset.hidden || hide) {
+769-    document.location.hash = 'hide';
+770-  } else {
+771-    document.location.hash = 'show=' + IMERender.ime.scrollHeight;
+772-  }</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>820</span>
+                                <span class='match_count'>(11/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>815-    // The telLayout and numberLayout do not show an alternative key
+816-    // menu, instead they send the alternative key and ignore the endPress.
+817-    if (currentInputType === 'number' || currentInputType === 'tel') {
+818-
+819-      // Does the key have an altKey?
+820:      var r = target.dataset.row, c = target.dataset.column;
+821-      var keyChar = currentLayout.keys[r][c].value;
+822-      var altKey = currentLayout.alt[keyChar] || null;
+823-
+824-      if (!altKey)
+825-        return;
+826-
+827-      // Attach a dataset property that will be used to ignore
+828-      // keypress in endPress
+829:      target.dataset.ignoreEndPress = true;
+830-
+831-      var keyCode = altKey.charCodeAt(0);
+832-      sendKey(keyCode);
+833-</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>851</span>
+                                <span class='match_count'>(12/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>846-
+847-// Show alternatives for the HTML node key
+848-function showAlternatives(key) {
+849-  // Get the key object from layout
+850-  var alternatives, altMap, value, keyObj, uppercaseValue;
+851:  var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
+852-  if (r &lt; 0 || c &lt; 0 || r === undefined || c === undefined)
+853-    return;
+854-  keyObj = currentLayout.keys[r][c];
+855-</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>926</span>
+                                <span class='match_count'>(13/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>921-  isShowingAlternativesMenu = false;
+922-}
+923-
+924-// Test if an HTML node is a normal key
+925-function isNormalKey(key) {
+926:  var keyCode = parseInt(key.dataset.keycode);
+927:  return keyCode || key.dataset.selection || key.dataset.compositekey;
+928-}
+929-
+930-//
+931-// Event Handlers</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1052</span>
+                                <span class='match_count'>(14/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1047-  IMERender.highlightKey(target);
+1048-  triggerFeedback();
+1049-
+1050-  setMenuTimeout(target, coords, touchId);
+1051-
+1052:  var keyCode = parseInt(target.dataset.keycode);
+1053-
+1054-  // Special keys (such as delete) response when pressing (not releasing)
+1055-  // Furthermore, delete key has a repetition behavior
+1056-  if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1115</span>
+                                <span class='match_count'>(15/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1110-    return;
+1111-
+1112-  // Update highlight: remove from older
+1113-  IMERender.unHighlightKey(oldTarget);
+1114-
+1115:  var keyCode = parseInt(target.dataset.keycode);
+1116-
+1117-  // Ignore if moving over delete key
+1118-  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
+1119-    // Set currentKey to null so that no key is entered in this case.
+1120-    // Except when the current key is actually backspace itself. Then we
+1121-    // need to leave currentKey alone, so that autorepeat works correctly.
+1122:    if (parseInt(oldTarget.dataset.keycode) !== keyCode)
+1123-      setCurrentKey(null, touchId);
+1124-    return;
+1125-  }
+1126-</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1170</span>
+                                <span class='match_count'>(16/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1165-
+1166-  if (!target || !isNormalKey(target))
+1167-    return;
+1168-
+1169-  // IME candidate selected
+1170:  var dataset = target.dataset;
+1171-  if (dataset.selection) {
+1172-
+1173-    if (inputMethod.select) {
+1174:      inputMethod.select(target.textContent, dataset.data);
+1175-    }
+1176-
+1177-    IMERender.highlightKey(target);
+1178-    return;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1185</span>
+                                <span class='match_count'>(17/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1180-
+1181-  IMERender.unHighlightKey(target);
+1182-
+1183-  // The alternate keys of telLayout and numberLayout do not
+1184-  // trigger keypress on key release.
+1185:  if (target.dataset.ignoreEndPress) {
+1186:    delete target.dataset.ignoreEndPress;
+1187-    return;
+1188-  }
+1189-
+1190:  var keyCode = parseInt(target.dataset.keycode);
+1191-
+1192-  // Delete is a special key, it reacts when pressed not released
+1193-  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
+1194-    return;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1208</span>
+                                <span class='match_count'>(18/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1203-    compositeKey.split('').forEach(function sendEachKey(key) {
+1204-      window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
+1205-    });
+1206-  }
+1207-
+1208:  var compositeKey = target.dataset.compositekey;
+1209-  if (compositeKey) {
+1210-    sendCompositeKey(compositeKey);
+1211-    return;
+1212-  }</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1241</span>
+                                <span class='match_count'>(19/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1236-    // Switch language (keyboard)
+1237-  case SWITCH_KEYBOARD:
+1238-
+1239-    // If the user has specify a keyboard in the menu,
+1240-    // switch to that keyboard.
+1241:    if (target.dataset.keyboard) {
+1242:      setKeyboardName(target.dataset.keyboard);
+1243-
+1244-      // If the user is releasing the switch keyboard key while
+1245-      // showing the alternatives, do nothing.
+1246-    } else if (isShowingAlternativesMenu) {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1415</span>
+                                <span class='match_count'>(20/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1410-    inputMethod.deactivate();
+1411-}
+1412-
+1413-// Resize event handler
+1414-function onResize() {
+1415:  if (IMERender.ime.dataset.hidden)
+1416-    return;
+1417-
+1418-  IMERender.resizeUI(currentLayout);
+1419-  updateTargetWindowHeight(); // this case is not captured by the mutation</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>172</span>
+                                <span class='match_count'>(21/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>167-
+168-    resizeUI(layout);
+169-  };
+170-
+171-  var showIME = function hm_showIME() {
+172:    delete this.ime.dataset.hidden;
+173-    this.ime.classList.remove('hide');
+174-  }
+175-
+176-  var hideIME = function km_hideIME() {
+177-    this.ime.classList.add('hide');
+178-    this.ime.classList.remove('candidate-panel');
+179:    this.ime.dataset.hidden = 'true';
+180-  };
+181-
+182-  // Highlight a key
+183-  var highlightKey = function kr_updateKeyHighlight(key, alternativeKey) {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>247</span>
+                                <span class='match_count'>(22/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>242-      candidatePanel.innerHTML = '';
+243-
+244-      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+245-
+246-      // If there were too many candidate
+247:      delete candidatePanel.dataset.truncated;
+248-      if (candidates.length &gt; 74) {
+249-        candidates = candidates.slice(0, 74);
+250:        candidatePanel.dataset.truncated = true;
+251-      }
+252-
+253-      candidates.forEach(function buildCandidateEntry(candidate) {
+254-        var span = document.createElement('span');
+255:        span.dataset.selection = true;
+256-        if (typeof candidate === 'string') {
+257:          span.dataset.data = span.textContent = candidate;
+258-        }
+259-        else {
+260:          span.dataset.data = candidate[1];
+261-          span.textContent = candidate[0];
+262-        }
+263-        candidatePanel.appendChild(span);
+264-      });</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>332</span>
+                                <span class='match_count'>(23/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>327-      altChars = altChars.reverse();
+328-    }
+329-
+330-    // How wide (in characters) is the key that we're displaying
+331-    // these alternatives for?
+332:    var keycharwidth = key.dataset.compositeKey ?
+333:      key.dataset.compositeKey.length :
+334-      1;
+335-
+336-    // Build a key for each alternative
+337-    altChars.forEach(function(alt) {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>446</span>
+                                <span class='match_count'>(24/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>441-          // to get the visual width/height of the key
+442-          // for better proximity info
+443-          var visualKey = key.querySelector('.visual-wrapper');
+444-
+445-          _keyArray.push({
+446:            code: key.dataset.keycode | 0,
+447-            x: visualKey.offsetLeft,
+448-            y: visualKey.offsetTop,
+449-            width: visualKey.clientWidth,
+450-            height: visualKey.clientHeight</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/render.js</span>:<span class='line_number'>490</span>
+                                <span class='match_count'>(25/25)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>485-    var toggleButton = document.createElement('span');
+486-    toggleButton.innerHTML = '⇪';
+487-    toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+488-    if (inputMethodName)
+489-      toggleButton.classList.add(inputMethodName);
+490:    toggleButton.dataset.keycode = -4;
+491-    return toggleButton;
+492-  };
+493-
+494-  var buildKey = function buildKey(label, className, width, dataset, altNote) {</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li>Ensure any user-controlled data must be escaped properly for the HTML context where it is being inserted.</li>
+<li>Sanitized the data value so that it does not contain any dangerious Javascript tags</li></ul></p><br> 
+					
+
+					<div class='signature_d9f9b0f82813d813afe0d450e9fab4d6 signature_group_url_sinks signature_group'>
+						<a name='s-d9f9b0f82813d813afe0d450e9fab4d6'></a><br>
+
+					<div class='group_signature_info'>          
+								
+					</div>
+						<br><h3>
+							<code><b>url_sinks: document.location</b></code>
+							<span class='signature_count'>(1)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("js","d9f9b0f82813d813afe0d450e9fab4d6")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>document.location and many of its properties should be inspected since the document object can be infuenced by the user or attacker in DOM.</p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 1</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>769</span>
+                                <span class='match_count'>(1/1)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>765-// Inform about a change in the displayed application via mutation observer
+766-// http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
+767-function updateTargetWindowHeight(hide) {
+768-  if (IMERender.ime.dataset.hidden || hide) {
+769:    <span class='match_highlight'>document.location</span>.hash = 'hide';
+770-  } else {
+771:    <span class='match_highlight'>document.location</span>.hash = 'show=' + IMERender.ime.scrollHeight;
+772-  }
+773-}
+774-
+775-function notifyShowKeyboard(show) {</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li>Make sure user input are properly sanitized before passing the value.</li>
+	 					<li><i>&quot;a document object or a window property may be referenced syntactically in many ways explicitly through window.location or implicitly through location. 
+	 					Special concentration should be given to patterns wherein the DOM is modfed, either explicitly or potentially, either via 
+						raw access to the HTML or via access to the DOM itself.&quot;</i> 
+						(<a href = 'http://pagesperso-systeme.lip6.fr/Suman.Saha/src/isa12.pdf'>Saha, Jin & Doh.</a> 2010)</li></ul></p><br> 
+					
+
+					<div class='signature_3abd3830a1b495d5f793dfd4ed160af5 signature_group_url_sinks signature_group'>
+						<a name='s-3abd3830a1b495d5f793dfd4ed160af5'></a><br>
+
+					<div class='group_signature_info'>          
+								
+					</div>
+						<br><h3>
+							<code><b>url_sinks: window.location</b></code>
+							<span class='signature_count'>(3)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("js","3abd3830a1b495d5f793dfd4ed160af5")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>window.location and many of its properties should be inspected since the Window object can be infuenced by the user or attacker in DOM.</p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 3</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1787</span>
+                                <span class='match_count'>(1/3)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1783-    // Check if the indexedDB is available on this platform
+1784-    isReady: function indexedDB_isReady() {
+1785-      if (!this.indexedDB || // No IndexedDB API implementation
+1786-        this.IDBDatabase.prototype.setVersion || // old version of IndexedDB API
+1787:        <span class='match_highlight'>window.location</span>.protocol === 'file:') {  // bug 643318
+1788-
+1789-        debug('IndexedDB is not available on this platform.');
+1790-        return false;
+1791-      }</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>736</span>
+                                <span class='match_count'>(2/3)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>731-   * Check if the indexedDB is available on this platform
+732-   */
+733-  isReady: function indexedDB_isReady() {
+734-    if (!this.indexedDB || // No IndexedDB API implementation
+735-        this.IDBDatabase.prototype.setVersion || // old version of IndexedDB API
+736:        <span class='match_highlight'>window.location</span>.protocol === 'file:') {  // bug 643318
+737-      debug('IndexedDB is not available on this platform.');
+738-      return false;
+739-    }
+740-    return true;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jszhuyin/jszhuyin.js</span>:<span class='line_number'>695</span>
+                                <span class='match_count'>(3/3)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>690-    /* ==== init functions ==== */
+691-
+692-    var getTermsInDB = function imedb_getTermsInDB(callback) {
+693-      if (!indexedDB || // No IndexedDB API implementation
+694-          IDBDatabase.prototype.setVersion || // old version of IndexedDB API
+695:          <span class='match_highlight'>window.location</span>.protocol === 'file:') {  // bug 643318
+696-        debug('IndexedDB is not available on this platform.');
+697-        callback();
+698-        return;
+699-      }</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li>Make sure user input are properly sanitized before passing the value.</li>
+	 					<li><i>&quot;[a document object or a window property may be referenced syntactically 
+	 					in many ways explicitly through window.location or implicitly through location. 
+	 					Special concentration should be given to patterns wherein the DOM is modifed, either explicitly or potentially, either via 
+						raw access to the HTML or via access to the DOM itself.&quot;</i> 
+						(<a href = 'http://pagesperso-systeme.lip6.fr/Suman.Saha/src/isa12.pdf'>Saha, Jin & Doh.</a> 2010)</li></ul></p><br> 
+					
+
+					<div class='signature_d66e006c79e9ff4d2f42ac8030dd17b9 signature_group_privileged_functions signature_group'>
+						<a name='s-d66e006c79e9ff4d2f42ac8030dd17b9'></a><br>
+
+					<div class='group_signature_info'>          
+					
+            <h2>Privileged API Functions</h2><p>
+            Privileged APIs handles platform and user-sensitive data.  If the privileged APIs were called incorrectly, it may allow attackers or malicious process to elevate their privilege, hijack the process, and obtain sensitive information. <i>&quot;It is important to know if privileged APIs fail to properly shed their privileges before returning to the caller or if the privileged function might make certain assumptions about the data, context or state information passed to it by the caller. It is important to always know when and how privileged APIs can be called in order to ensure that their elevated level of privilege cannot be exploited.&quot;</i>(<A href='http://minsky.gsi.dit.upm.es/semanticwiki/index.php/Category:Incorrect_Use_of_Privileged_APIs'>VulneraPedia</a>, 2011)<br><br>
+            When reviewing App Manifest:
+						<ul><li>Ensure type is web or privileged.</li>
+    				<li>Review permissions requested for appropriateness. Consider allow restrictions.</li>
+    				<li>Review system messages listened for.</li>
+    				<li>Review activities handled.</li></ul></p>
+    				
+    				Please read the <a href='https://developer.mozilla.org/en-US/docs/Web/Apps/CSP?redirectlocale=en-US&redirectslug=Apps%2FCSP'>Content Security Policy </a>on privileged apps<br>
+
+            
+								
+					</div>
+						<br><h3>
+							<code><b>privileged_functions: mozSettings</b></code>
+							<span class='signature_count'>(4)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("js","d66e006c79e9ff4d2f42ac8030dd17b9")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p><i>&quot;navigator.mozSettings is a SettingsManager object you can use to access and change the device's settings.&quot;</i>(Mozilla Developer Network)<br><br><b>Permissions:</b><br>Web Content: None (DENY_ACTION)
+						<br>Installed Web App: None (DENY_ACTION)<br>Privileged Web App: None (DENY_ACTION)<br>Certified Web App: Implicit (ALLOW_ACTION)<br><br>
+						<a href='https://developer.mozilla.org/en-US/docs/DOM/window.navigator.mozSettings'>Click here for more information on mozSettings</a></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 4</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>322</span>
+                                <span class='match_count'>(1/4)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>318-}
+319-
+320-function initKeyboard() {
+321-  // First, register handlers to track settings changes
+322:  navigator.<span class='match_highlight'>mozSettings</span>.addObserver('language.current', function(e) {
+323-    // The keyboard won't be displayed when this setting changes, so we
+324-    // don't need to tell the keyboard about the new value right away.
+325-    // We pass the value to the input method when the keyboard is displayed.
+326-    userLanguage = e.settingValue;
+327-  });
+328-
+329:  navigator.<span class='match_highlight'>mozSettings</span>.addObserver('keyboard.wordsuggestion', function(e) {
+330-    // The keyboard won't be displayed when this setting changes, so we
+331-    // don't need to tell the keyboard about the new value right away.
+332-    // We pass the value to the input method when the keyboard is displayed
+333-    suggestionsEnabled = e.settingValue;
+334-  });
+335-
+336:  navigator.<span class='match_highlight'>mozSettings</span>.addObserver('keyboard.vibration', function(e) {
+337-    vibrationEnabled = e.settingValue;
+338-  });
+339-
+340:  navigator.<span class='match_highlight'>mozSettings</span>.addObserver('keyboard.clicksound', function(e) {
+341-    clickEnabled = e.settingValue;
+342-    if (clickEnabled)
+343-      clicker = new Audio(CLICK_SOUND);
+344-    else</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>359</span>
+                                <span class='match_count'>(2/4)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>354-        enabledKeyboardGroups[name] = e.settingValue;
+355-        handleNewKeyboards();
+356-      }
+357-    }
+358-
+359:    navigator.<span class='match_highlight'>mozSettings</span>.addObserver(settingName,
+360-                                      createLayoutCallback(settingName));
+361-  }
+362-
+363-  // Initialize the rendering module</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>739</span>
+                                <span class='match_count'>(3/4)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>734-function updateSettings(key, value) {
+735-  var settings = {};
+736-  settings['keyboard.' + key] = value;
+737-
+738-  try {
+739:    var lock = navigator.<span class='match_highlight'>mozSettings</span>.createLock();
+740-    lock.set(settings);
+741-  } catch (ex) {}
+742-}
+743-</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1552</span>
+                                <span class='match_count'>(4/4)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1547-// default value if the setting was not found).
+1548-//
+1549-function getSettings(settings, callback) {
+1550-  var results = {};
+1551-  try {
+1552:    var lock = navigator.<span class='match_highlight'>mozSettings</span>.createLock();
+1553-  }
+1554-  catch (e) {
+1555-    // If settings is broken, just return the default values
+1556:    console.warn('Exception in <span class='match_highlight'>mozSettings</span>.createLock():', e,
+1557-                 '\nUsing default values');
+1558-    for (var p in settings)
+1559-      results[p] = settings[p];
+1560-    callback(results);</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li><i>&quot;Declare stricter-than-default CSP, using the manifest's CSP directive.&quot;</i> (<a href='https://developer.mozilla.org/en-US/docs/Web/Apps/Security_guidelines#HTML.2FJavascript.2FCSS_injection_and_XSS'>Mozilla Developer Network:Security Guidelines</a>. 2013)</li>
+						<li><i>&quot;Only request the bare minimum of permissions necessary for your application to work.</li>
+						<li>Use access restrictions like read-only where the API supports them&quot;</i></li>
+						<li>Declare stricter-than-default CSP, using the manifest's CSP directive.&quot;</i>&quot; (<a href='https://developer.mozilla.org/en-US/docs/Web/Apps/Security_guidelines#HTML.2FJavascript.2FCSS_injection_and_XSS'>Firefox Developer Network:Security Guidelines</a>. 2013)</li></ul></p><br> 
+					
+
+					<div class='signature_cbdff59531e98cd1341ee792207e3a1e signature_group_privileged_functions signature_group'>
+						<a name='s-cbdff59531e98cd1341ee792207e3a1e'></a><br>
+
+					<div class='group_signature_info'>          
+								
+					</div>
+						<br><h3>
+							<code><b>privileged_functions: mozKeyboard</b></code>
+							<span class='signature_count'>(7)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("js","cbdff59531e98cd1341ee792207e3a1e")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p><i>&quot;mozKeyboard allows the app to act as a virtual keyboard by listening to focus change events in other apps.&quot;</i>(Mozilla Wiki)<br><br><b>Permissions:</b><br>
+						Web Content: None (DENY_ACTION)<br>Installed Web App: None (DENY_ACTION)<br>Privileged Web App: None (DENY_ACTION)<br>Certified Web App: Implicit (ALLOW_ACTION)<br><br><a href='https://wiki.mozilla.org/WebAPI/KeboardIME'>Click here for more information on WebAPI/KeboardIME</a></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 7</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>10</span>
+                                <span class='match_count'>(1/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>6- *
+7- * This is the main module of the Gaia keyboard app. It does these things:
+8- *
+9- * - Hides and shows the keyboard in response to focuschange events from
+10: *   navigator.<span class='match_highlight'>mozKeyboard</span>
+11- *
+12- * - Loads the input method (from imes/) module required by a keyboard
+13- *
+14- * - Handles settings changes for the user's language, keyboard layouts, and</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>24</span>
+                                <span class='match_count'>(2/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>19- *
+20- * - Handles (using code that was formerly in a separate controller.js module)
+21- *   mouse events over the keyboard and passes them to the input method.
+22- *
+23- * - When the input method sends value back to the keyboard, it turns
+24: *   them into synthetic key events using the navigator.<span class='match_highlight'>mozKeyboard</span> API.
+25- *
+26- * This module includes code that was formerly in the controller.js and
+27- * feedback.js modules. Other modules handle other parts of the keyboard:
+28- *</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>94</span>
+                                <span class='match_count'>(3/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>89- *    sendPendingSymbols:
+90- *      like sendCandidates, but used by Asian IMs.
+91- *
+92- *    sendKey(keycode):
+93- *      Generate output. Typically the keyboard will just pass this
+94: *      keycode to <span class='match_highlight'>mozKeyboard</span>.sendKey(). The IM could call
+95: *      <span class='match_highlight'>mozKeyboard</span>.sendKey() directly, but doing it this way allows
+96- *      us to chain IMs, I think.
+97- *
+98- *    sendString:
+99- *      Outputs a string of text by repeated calls to sendKey().</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>205</span>
+                                <span class='match_count'>(4/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>200-
+201-// This is the default keyboard if none is selected in settings
+202-// XXX: switch this to pt-BR?
+203-const defaultKeyboardNames = ['en'];
+204-
+205:// If we get a focuschange event from <span class='match_highlight'>mozKeyboard</span> for an element with
+206-// one of these types, we'll just ignore it.
+207-const ignoredFormElementTypes = {
+208-  'select-one': true,
+209-  'select-multiple': true,</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>384</span>
+                                <span class='match_count'>(5/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>379-  });
+380-
+381-  // Show or hide the keyboard when we get an focuschange event
+382-  // from the keyboard
+383-  var focusChangeTimeout = 0;
+384:  navigator.<span class='match_highlight'>mozKeyboard</span>.onfocuschange = function onfocuschange(evt) {
+385-    var state = evt.detail;
+386-    var type = state.type;
+387-
+388-    // Skip the &lt;select&gt; element and inputs with type of date/time,</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1204</span>
+                                <span class='match_count'>(6/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1199-    isContinousSpacePressed = false;
+1200-
+1201-  // Handle composite key (key that sends more than one code)
+1202-  var sendCompositeKey = function sendCompositeKey(compositeKey) {
+1203-    compositeKey.split('').forEach(function sendEachKey(key) {
+1204:      window.navigator.<span class='match_highlight'>mozKeyboard</span>.sendKey(0, key.charCodeAt(0));
+1205-    });
+1206-  }
+1207-
+1208-  var compositeKey = target.dataset.compositekey;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/keyboard.js</span>:<span class='line_number'>1359</span>
+                                <span class='match_count'>(7/7)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1354-  renderKeyboard(keyboardName);
+1355-
+1356-  IMERender.setUpperCaseLock(isUpperCase);
+1357-}
+1358-
+1359:// This is a wrapper around <span class='match_highlight'>mozKeyboard</span>.sendKey()
+1360-// We use it in the defaultInputMethod and in the interface object
+1361-// we pass to real input methods
+1362-function sendKey(keyCode) {
+1363-  switch (keyCode) {
+1364-  case KeyEvent.DOM_VK_BACK_SPACE:
+1365-  case KeyEvent.DOM_VK_RETURN:
+1366:    window.navigator.<span class='match_highlight'>mozKeyboard</span>.sendKey(keyCode, 0);
+1367-    break;
+1368-
+1369-  default:
+1370:    window.navigator.<span class='match_highlight'>mozKeyboard</span>.sendKey(0, keyCode);
+1371-    break;
+1372-  }
+1373-}
+1374-
+1375-// Set up the keyboard and its input method.
+1376:// This is called when we get an event from <span class='match_highlight'>mozKeyboard</span>.
+1377-// The state argument is the data passed with that event, and includes
+1378-// the input field type, its inputmode, its content, and the cursor position.
+1379-function showKeyboard(state) {
+1380-  // If no keyboard has been selected yet, choose the first enabled one.</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li><i>&quot;Declare stricter-than-default CSP, using the manifest's CSP directive.&quot;</i> (<a href='https://developer.mozilla.org/en-US/docs/Web/Apps/Security_guidelines#HTML.2FJavascript.2FCSS_injection_and_XSS'>Mozilla Developer Network:Security Guidelines</a>. 2013)</li>
+						<li><i>&quot;Only request the bare minimum of permissions necessary for your application to work.</li>
+						<li>Use access restrictions like read-only where the API supports them&quot;</i> (<a href='https://developer.mozilla.org/en-US/docs/Web/Apps/Security_guidelines#Permissions'>Mozilla Developer Network</a>. 2013)</li></ul></p><br> 
+					
+
+					<div class='signature_d088696e0fa63cd5481a48d057f64385 signature_group_client_side_storage signature_group'>
+						<a name='s-d088696e0fa63cd5481a48d057f64385'></a><br>
+
+					<div class='group_signature_info'>          
+					
+            <h2>Client Side Storage</h2><p>Client-side storage in HTML5 is used to store data on local hard drive rather than on a server in order to improve performance and availability to work offline.  
+It is important to protect these sensitive data that are stored in the client-side storage when building a privileged web application.</p>  
+
+            
+						
+          			
+					</div>
+						<br><h3>
+							<code><b>client_side_storage: indexedDB</b></code>
+							<span class='signature_count'>(21)</span>
+
+
+
+							<span class='top_hide'>
+								<a href='#'>Top</a>
+								<a onclick='wt.signature.toggle("js","d088696e0fa63cd5481a48d057f64385")'>Hide</a>
+							</span>
+						</h3>
+
+							
+				
+
+					<h3>Description:</h3><p>IndexedDB is an API for client-side storage of significant amounts of structured data and for high performance searches on this data using indexes.  
+						You must need <i>&quot;...to ensure data consistency and integrity, since data is effectively unstructured.&quot;</i>
+						(<a href='http://www.html5rocks.com/en/tutorials/offline/storage/#indexed-db'>Mahemoff</a>)<br><br><b>Permissions:</b><br>Web Content: None (DENY_ACTION)<br>Installed Web App: Implicit (ALLOW_ACTION)<br>Privileged Web App: Implicit (ALLOW_ACTION)
+						<br>Certified Web App: Implicit (ALLOW_ACTION)<br><br><a href='https://developer.mozilla.org/en-US/docs/IndexedDB'>Click here for more information on indexedDB</a></p><br>             
+					<div id='vulnerability_number'><h3>Possible Instances: 21</h3></div>
+						<div class='sortable'>
+                            
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1130</span>
+                                <span class='match_count'>(1/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1126-      callback();
+1127-    };
+1128-
+1129-
+1130:    // Get json and init <span class='match_highlight'>indexedDB</span> if possible
+1131-    var initDB = function ime_initDB(readyCallback) {
+1132-      var dbSettings = {
+1133-        enableIndexedDB: _enableIndexedDB
+1134-      };</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1773</span>
+                                <span class='match_count'>(2/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1768-     this._kanaIndex = new Index(this._dataArray, 'kana');
+1769-   }
+1770-  };
+1771-
+1772-
+1773:  // **Interfaces of <span class='match_highlight'>indexedDB</span>**
+1774-  var IndexedDB = {
+1775:    <span class='match_highlight'>indexedDB</span>: window.<span class='match_highlight'>indexedDB</span> || window.webkitIndexedDB ||
+1776-      window.mozIndexedDB || window.msIndexedDB,
+1777-
+1778-    IDBDatabase: window.IDBDatabase || window.webkitIDBDatabase ||
+1779-      window.msIDBDatabase,
+1780-
+1781-    IDBIndex: window.IDBIndex || window.webkitIDBIndex || window.msIDBIndex,
+1782-
+1783:    // Check if the <span class='match_highlight'>indexedDB</span> is available on this platform
+1784:    isReady: function <span class='match_highlight'>indexedDB</span>_isReady() {
+1785:      if (!this.<span class='match_highlight'>indexedDB</span> || // No IndexedDB API implementation
+1786-        this.IDBDatabase.prototype.setVersion || // old version of IndexedDB API
+1787-        window.location.protocol === 'file:') {  // bug 643318
+1788-
+1789-        debug('IndexedDB is not available on this platform.');</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1799</span>
+                                <span class='match_count'>(3/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1794-    }
+1795-
+1796-  };
+1797-  /* end IndexedDB */
+1798-
+1799:  var IndexedDBStorage = function <span class='match_highlight'>indexedDB</span>Storage_constructor(dbName) {
+1800-    this._dbName = dbName;
+1801-  };
+1802-
+1803-  IndexedDBStorage.kDBVersion = 1.0;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1818</span>
+                                <span class='match_count'>(4/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1813-    // IDBDatabase interface
+1814-    _IDBDatabase: null,
+1815-
+1816-    _count: 0,
+1817-
+1818:    init: function <span class='match_highlight'>indexedDB</span>Storage_init(callback) {
+1819-      var self = this;
+1820-      function doCallback() {
+1821-        if (callback) {
+1822-          callback(self._status);</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1837</span>
+                                <span class='match_count'>(5/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1832-
+1833-      // Set the status to busy.
+1834-      this._status = DatabaseStorageBase.StatusCode.BUSY;
+1835-
+1836-      // Open the database
+1837:      var req = IndexedDB.<span class='match_highlight'>indexedDB</span>.open(this._dbName,
+1838-          IndexedDBStorage.kDBVersion);
+1839-      req.onerror = function dbopenError(ev) {
+1840-        debug('Encounter error while opening IndexedDB.');
+1841-        self._status = DatabaseStorageBase.StatusCode.ERROR;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1901</span>
+                                <span class='match_count'>(6/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1896-            };
+1897-          });
+1898-      };
+1899-    },
+1900-
+1901:    uninit: function <span class='match_highlight'>indexedDB</span>Storage_uninit(callback) {
+1902-      function doCallback() {
+1903-        if (callback) {
+1904-          callback();
+1905-        }</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1923</span>
+                                <span class='match_count'>(7/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1918-
+1919-      this._status = DatabaseStorageBase.StatusCode.UNINITIALIZED;
+1920-      doCallback();
+1921-    },
+1922-
+1923:    isEmpty: function <span class='match_highlight'>indexedDB</span>Storage_isEmpty() {
+1924-      return this._count == 0;
+1925-    },
+1926-
+1927:    getAllTerms: function <span class='match_highlight'>indexedDB</span>Storage_getAllTerms(callback) {
+1928-      var homonymsArray = [];
+1929-      function doCallback() {
+1930-        if (callback) {
+1931-          callback(homonymsArray);</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>1964</span>
+                                <span class='match_count'>(8/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1959-          doCallback();
+1960-        }
+1961-      };
+1962-    },
+1963-
+1964:    setAllTerms: function <span class='match_highlight'>indexedDB</span>Storage_setAllTerms(homonymsArray,
+1965-                                                       callback) {
+1966-      var self = this;
+1967-      function doCallback() {
+1968-        self._status = DatabaseStorageBase.StatusCode.READY;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>2057</span>
+                                <span class='match_count'>(9/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2052-      }
+2053-
+2054-      processNextWithDelay();
+2055-    },
+2056-
+2057:    getTermsByKana: function <span class='match_highlight'>indexedDB</span>Storage_getTermsByKana(syllablesStr,
+2058-                                                             callback) {
+2059-      var homonymsArray = [];
+2060-      function doCallback() {
+2061-        if (callback) {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>2091</span>
+                                <span class='match_count'>(10/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2086-        doCallback();
+2087-      };
+2088-    },
+2089-    /* getTermsByKana */
+2090-
+2091:    getTermsByKanaPrefix: function <span class='match_highlight'>indexedDB</span>Storage_getTermsByKanaPrefix(
+2092-                              prefix, callback) {
+2093-      var homonymsArray = [];
+2094-      function doCallback() {
+2095-        if (callback) {</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>2132</span>
+                                <span class='match_count'>(11/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2127-      };
+2128-    }
+2129-  };
+2130-
+2131-  // ** IMEngineDatabase is exposed to IME **
+2132:  // It contains both instances of `jsonStorage` and `<span class='match_highlight'>indexedDB</span>Storage`
+2133:  // Query processes in <span class='match_highlight'>indexedDB</span>Storage if possible, otherwise in jsonStorage
+2134-  var IMEngineDatabase = function imedb(dbName, jsonUrl) {
+2135-    var settings;
+2136-
+2137-    // Dictionary words' total frequency.
+2138-    var kDictTotalFreq = 770216270;
+2139-
+2140-    var jsonStorage = new JsonStorage(jsonUrl);
+2141:    var <span class='match_highlight'>indexedDB</span>Storage = new IndexedDBStorage(dbName);
+2142-
+2143-    var iDBCache = {};
+2144-    var cacheTimer;
+2145-    var kCacheTimeout = 10000;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>2152</span>
+                                <span class='match_count'>(12/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2147-    var self = this;
+2148-
+2149-    /* ==== init functions ==== */
+2150-    var populateDBFromJSON = function imedb_populateDBFromJSON(callback) {
+2151-      jsonStorage.getAllTerms(function getAllTermsCallback(homonymsArray) {
+2152:        <span class='match_highlight'>indexedDB</span>Storage.setAllTerms(homonymsArray, callback);
+2153-      });
+2154-    };
+2155-
+2156-    /* ==== helper functions ==== */</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>2187</span>
+                                <span class='match_count'>(13/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2182-        jsonStorage.init(ready);
+2183-        return;
+2184-      }
+2185-
+2186-      debug('Probing IndexedDB ...');
+2187:      <span class='match_highlight'>indexedDB</span>Storage.init(function <span class='match_highlight'>indexedDB</span>StorageInitCallback() {
+2188:        if (!<span class='match_highlight'>indexedDB</span>Storage.isReady()) {
+2189-          debug('IndexedDB not available; Downloading JSON ...');
+2190-          jsonStorage.init(ready);
+2191-          return;
+2192-        }
+2193-        ready();
+2194:        if (<span class='match_highlight'>indexedDB</span>Storage.isEmpty()) {
+2195-          jsonStorage.init(function jsonStorageInitCallback() {
+2196-            if (!jsonStorage.isReady()) {
+2197-              debug('JSON failed to download.');
+2198-              return;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>2206</span>
+                                <span class='match_count'>(14/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2201-            debug(
+2202-              'JSON loaded,' +
+2203-              'IME is ready to use while inserting data into db ...'
+2204-              );
+2205-            populateDBFromJSON(function populateDBFromJSONCallback() {
+2206:              if (!<span class='match_highlight'>indexedDB</span>Storage.isEmpty()) {
+2207:                debug('IndexedDB ready and switched to <span class='match_highlight'>indexedDB</span> backend.');
+2208-                jsonStorage.uninit();
+2209-              } else {
+2210-                debug('Failed to populate IndexedDB from JSON.');
+2211-              }</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jskanji/jskanji.js</span>:<span class='line_number'>2220</span>
+                                <span class='match_count'>(15/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>2215-      });
+2216-    };
+2217-
+2218-    /* ==== uninit ==== */
+2219-    this.uninit = function imedb_uninit() {
+2220:      <span class='match_highlight'>indexedDB</span>Storage.uninit();
+2221-      jsonStorage.uninit();
+2222-    };
+2223-
+2224:    // return instance of <span class='match_highlight'>indexedDB</span>Storage if possible
+2225-    //        otherwise jsonStorage
+2226-    //        null if neither is not available
+2227-    var _getUsableStorage = function imedb__getUsableStorage() {
+2228-      if (settings.enableIndexedDB &amp;&amp;
+2229:          <span class='match_highlight'>indexedDB</span>Storage.isReady() &amp;&amp;
+2230:          !<span class='match_highlight'>indexedDB</span>Storage.isEmpty()) {
+2231:            return <span class='match_highlight'>indexedDB</span>Storage;
+2232-          } else if (jsonStorage.isReady() &amp;&amp; !jsonStorage.isEmpty()) {
+2233-            return jsonStorage;
+2234-          } else {
+2235-            return null;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>719</span>
+                                <span class='match_count'>(16/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>714-    this._glue.alterKeyboard(keyboard);
+715-  }
+716-};
+717-
+718-/**
+719: * Interfaces of <span class='match_highlight'>indexedDB</span>
+720- */
+721-var IndexedDB = {
+722:  <span class='match_highlight'>indexedDB</span>: window.<span class='match_highlight'>indexedDB</span> || window.webkitIndexedDB ||
+723-    window.mozIndexedDB || window.msIndexedDB,
+724-
+725-  IDBDatabase: window.IDBDatabase || window.webkitIDBDatabase ||
+726-    window.msIDBDatabase,
+727-
+728-  IDBIndex: window.IDBIndex || window.webkitIDBIndex || window.msIDBIndex,
+729-
+730-  /**
+731:   * Check if the <span class='match_highlight'>indexedDB</span> is available on this platform
+732-   */
+733:  isReady: function <span class='match_highlight'>indexedDB</span>_isReady() {
+734:    if (!this.<span class='match_highlight'>indexedDB</span> || // No IndexedDB API implementation
+735-        this.IDBDatabase.prototype.setVersion || // old version of IndexedDB API
+736-        window.location.protocol === 'file:') {  // bug 643318
+737-      debug('IndexedDB is not available on this platform.');
+738-      return false;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>1210</span>
+                                <span class='match_count'>(17/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1205-    }
+1206-  }
+1207-};
+1208-
+1209-/**
+1210: * Simulate file system with <span class='match_highlight'>indexedDB</span>
+1211- * @constructor
+1212- */
+1213-var IndexedDBFileSystemStorage = function idbFileSystemStorage_constructor() {
+1214-  this._dbName = IndexedDBFileSystemStorage.DB_NAME;</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jspinyin/jspinyin.js</span>:<span class='line_number'>1258</span>
+                                <span class='match_count'>(18/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>1253-
+1254-    // Set the status to busy.
+1255-    this._status = FileSystemStorage.StatusCode.BUSY;
+1256-
+1257-    // Open the database
+1258:    var req = IndexedDB.<span class='match_highlight'>indexedDB</span>.open(this._dbName, this._dbVersion);
+1259-    req.onerror = function dbopenError(ev) {
+1260-      debug('Encounter error while opening IndexedDB: ' + this._dbName);
+1261-      self._status = FileSystemStorage.StatusCode.ERROR;
+1262-      doCallback();</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jszhuyin/jszhuyin.js</span>:<span class='line_number'>667</span>
+                                <span class='match_count'>(19/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>662-    var cacheTimer;
+663-    var kCacheTimeout = 10000;
+664-
+665-    var self = this;
+666-
+667:    var <span class='match_highlight'>indexedDB</span> = window.<span class='match_highlight'>indexedDB</span> ||
+668-      window.webkitIndexedDB ||
+669-      window.mozIndexedDB ||
+670-      window.msIndexedDB;
+671-</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jszhuyin/jszhuyin.js</span>:<span class='line_number'>693</span>
+                                <span class='match_count'>(20/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>688-    }
+689-
+690-    /* ==== init functions ==== */
+691-
+692-    var getTermsInDB = function imedb_getTermsInDB(callback) {
+693:      if (!<span class='match_highlight'>indexedDB</span> || // No IndexedDB API implementation
+694-          IDBDatabase.prototype.setVersion || // old version of IndexedDB API
+695-          window.location.protocol === 'file:') {  // bug 643318
+696-        debug('IndexedDB is not available on this platform.');
+697-        callback();
+698-        return;
+699-      }
+700-
+701:      var req = <span class='match_highlight'>indexedDB</span>.open(kDBName, kDBVersion);
+702-      req.onerror = function dbopenError(ev) {
+703-        debug('Encounter error while opening IndexedDB.');
+704-        callback();
+705-      };</code></pre>
+								</div>
+
+							</div>
+
+							
+							<div class='point_of_interest'>
+								<span class='file_name'>./js/imes/jszhuyin/jszhuyin.js</span>:<span class='line_number'>1003</span>
+                                <span class='match_count'>(21/21)</span>
+								<span class='poi_mark_content'>
+									<a class='poi_ok'>OK</a> |
+									<a class='poi_dubious'>Dubious</a> |
+									<a class='poi_bad'>Bad</a> |
+									<a class='poi_hide'>Hide</a>
+								</span>
+								<div class='poi_content'>
+									
+									<pre class='snippet'><code>998-              'JSON loaded,' +
+999-              'IME is ready to use while inserting data into db ...'
+1000-            );
+1001-            ready();
+1002-            populateDBFromJSON(function getTermsInDBCallback() {
+1003:              debug('IndexedDB ready and switched to <span class='match_highlight'>indexedDB</span> backend.');
+1004-            });
+1005-          });
+1006-        };
+1007-      });</code></pre>
+								</div>
+
+							</div>
+
+							
+						</div>
+					</div>
+<h3>Solution(s):</h3><p><ul><li>&quot;<i>Keep user data to a minimum and avoid storage of private user information where possible.</li>    				
+						<li>Provide users with a way to clear sensitive data.</il>
+						<li>Consider encryption prior to storage for particularly sensitive data.</li>
+						<li> Mind that keys stored on the device can be recovered even after deletion.</i>&quot;(<a href='https://developer.mozilla.org/en-US/docs/Web/Apps/Security_guidelines'>Mozilla Developer Network:Security Guidelines</a>, 2013)</li></ul></p><br> 
+					
+					
+				</div> <!-- column_content -->
+			</div> <!-- @close_filetype -->
+			
+		</div> <!-- main -->
+		
+		
+		<footer>Report generated by <a href='https://github.com/chrisallenlane/watchtower'>Watchtower</a>.<br>For more information, please see:<br><a href='https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet'>OWASP DOM Based XSS Prevention cheat Sheet</a>
+<br><a href='https://developer.mozilla.org/en-US/'>Mozilla Developer Network</a><br><a href='https://developer.mozilla.org/en-US/docs/Web/Apps/Security_guidelines'>Firefox OS Security Guidelines</a> <br></footer>
+		
+	</div>
+</body>
+</html>
